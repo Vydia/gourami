@@ -1,4 +1,5 @@
 require "gourami"
+require "pry"
 require "minitest/spec"
 
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)

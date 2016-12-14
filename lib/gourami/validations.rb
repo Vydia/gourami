@@ -5,6 +5,10 @@ module Gourami
 
     include Gourami::FormattingConstants
 
+    def validate
+      # Override to add custom validations
+    end
+
     # Validate and perform the form actions. If any errors come up during the
     #   validation or the #perform method, raise an exception with the errors.
     #

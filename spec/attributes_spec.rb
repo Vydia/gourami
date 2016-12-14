@@ -1,7 +1,9 @@
 require_relative "./spec_helper"
 
 describe Gourami::Attributes do
-  let(:form_class) { Class.new(Gourami::Form) }
+  let(:form_class) do
+    Class.new.tap { |c| c.send(:include, Gourami::Attributes) }
+  end
 
   describe "#provided_attributes" do
     it "returns a hash" do

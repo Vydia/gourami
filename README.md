@@ -102,7 +102,7 @@ end
 ```ruby
 def edit
   fish_tank = FishTank.find(params[:id])
-  @form = UpdateFishTank.new(fish_tank: fish_tank)
+  @form = UpdateFishTank.new_from_record(fish_tank)
 end
 
 def update
@@ -129,6 +129,10 @@ class UpdateFishTank < CreateFishTank
   attribute(:liters, type: :float)
   attribute(:name, type: :string)
   attribute(:filter_included, type: :boolean, default: false)
+
+  def self.new_from_record(fish_tank)
+    new({ fish_tank: fish_tank }.merge(fish_tank.attributes))
+  end
 
   def validate
     validate_presence(:width)
@@ -159,6 +163,10 @@ end
 class UpdateFishTank < CreateFishTank
 
   # All attributes and validations inherited from CreateFishTank.
+
+  def self.new_from_record(fish_tank)
+    new({ fish_tank: fish_tank }.merge(fish_tank.attributes))
+  end
 
   def perform
     fish_tank.update(attributes)

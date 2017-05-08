@@ -3,6 +3,7 @@ end
 
 require "gourami/attributes"
 require "gourami/coercer"
+require "gourami/extensions/resources"
 require "gourami/form"
 require "gourami/formatting_constants"
 require "gourami/required_attribute_error"

@@ -50,6 +50,7 @@ module Gourami
     #
     # @return [Hash<Symbol, nil>, Array<Symbol, String>]
     def clear_and_set_errors(new_errors)
+      new_errors = new_errors.dup
       errors.clear
       errors.merge!(new_errors)
 

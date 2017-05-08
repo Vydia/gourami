@@ -44,6 +44,18 @@ module Gourami
       !any_errors?
     end
 
+    # Replace the existing errors with the provided errors Hash.
+    #
+    # @param new_errors [Hash<Symbol, nil>, Array<Symbol, String>]
+    #
+    # @return [Hash<Symbol, nil>, Array<Symbol, String>]
+    def clear_and_set_errors(new_errors)
+      errors.clear
+      errors.merge!(new_errors)
+
+      errors
+    end
+
     # Return true if there given attribute has any errors.
     def attribute_has_errors?(attribute_name)
       errors[attribute_name.to_sym].any?

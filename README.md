@@ -46,11 +46,11 @@ end
 
 ```ruby
 def new
-  @form = CreateFishTank.new
+  @form = CreateFishBowl.new
 end
 
 def create
-  @form = CreateFishTank.new(fish_tank_params)
+  @form = CreateFishBowl.new(fish_bowl_params)
 
   if @form.valid?
     @form.perform
@@ -64,9 +64,9 @@ end
 ### Example of a form that Creates a record
 
 ```ruby
-class CreateFishTank < Gourami::Form
+class CreateFishBowl < Gourami::Form
 
-  record(:fish_tank)
+  record(:fish_bowl)
 
   attribute(:width, type: :integer)
   attribute(:height, type: :integer)
@@ -86,12 +86,12 @@ class CreateFishTank < Gourami::Form
 
     validate_presence(:name)
     validate_uniqueness(:name) do |name|
-      FishTank.where(name: name).empty?
+      FishBowl.where(name: name).empty?
     end
   end
 
   def perform
-    self.fish_tank = FishTank.create(attributes)
+    self.fish_bowl = FishBowl.create(attributes)
   end
 
 end
@@ -101,12 +101,12 @@ end
 
 ```ruby
 def edit
-  fish_tank = FishTank.find(params[:id])
-  @form = UpdateFishTank.new_from_record(fish_tank)
+  fish_bowl = FishBowl.find(params[:id])
+  @form = UpdateFishBowl.new_from_record(fish_bowl)
 end
 
 def update
-  @form = UpdateFishTank.new(fish_tank_params)
+  @form = UpdateFishBowl.new(fish_bowl_params)
 
   if @form.valid?
     @form.perform
@@ -120,9 +120,9 @@ end
 ### Example of a form that Updates a record
 
 ```ruby
-class UpdateFishTank < CreateFishTank
+class UpdateFishBowl < CreateFishBowl
 
-  record(:fish_tank)
+  record(:fish_bowl)
 
   attribute(:width, type: :integer)
   attribute(:height, type: :integer)
@@ -130,8 +130,8 @@ class UpdateFishTank < CreateFishTank
   attribute(:name, type: :string)
   attribute(:filter_included, type: :boolean, default: false)
 
-  def self.new_from_record(fish_tank)
-    new({ fish_tank: fish_tank }.merge(fish_tank.attributes))
+  def self.new_from_record(fish_bowl)
+    new({ fish_bowl: fish_bowl }.merge(fish_bowl.attributes))
   end
 
   def validate
@@ -146,12 +146,12 @@ class UpdateFishTank < CreateFishTank
 
     validate_presence(:name)
     validate_uniqueness(:name) do |name|
-      FishTank.where(name: name).empty?
+      FishBowl.where(name: name).empty?
     end
   end
 
   def perform
-    fish_tank.update(attributes)
+    fish_bowl.update(attributes)
   end
 
 end
@@ -160,16 +160,16 @@ end
 #### Or inherit instead of duplicating the attributes and validations
 
 ```ruby
-class UpdateFishTank < CreateFishTank
+class UpdateFishBowl < CreateFishBowl
 
-  # All attributes and validations inherited from CreateFishTank.
+  # All attributes and validations inherited from CreateFishBowl.
 
-  def self.new_from_record(fish_tank)
-    new({ fish_tank: fish_tank }.merge(fish_tank.attributes))
+  def self.new_from_record(fish_bowl)
+    new({ fish_bowl: fish_bowl }.merge(fish_bowl.attributes))
   end
 
   def perform
-    fish_tank.update(attributes)
+    fish_bowl.update(attributes)
   end
 
 end

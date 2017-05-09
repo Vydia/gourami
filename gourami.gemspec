@@ -7,11 +7,11 @@ Gem::Specification.new do |spec|
   spec.name          = "gourami"
   spec.version       = Gourami::VERSION
   spec.authors       = ["TSMMark"]
-  spec.email         = ["9thousand@gmail.com"]
+  spec.email         = ["dev@vydia.com"]
 
   spec.summary       = %q{Keep your Routes, Controllers and Models thin.}
   spec.description   = %q{Create Plain Old Ruby Objects that take attributes, validate them, and perform an action.}
-  spec.homepage      = "http://github.com/TSMMark/gourami"
+  spec.homepage      = "http://github.com/Vydia/gourami"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|

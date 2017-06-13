@@ -1,6 +1,6 @@
 # Gourami
 
-Keep your Routes, Controllers and Models thin.
+Keep your Routes, Controllers and Models thin with Plain Old Ruby Objects (PORO).
 
 ## Installation
 
@@ -22,9 +22,9 @@ Or install it yourself as:
 
 ### A Typical Gourami::Form will
 
- - list a set of attributes
- - validate user input
- - perform an action
+ - Define some attributes
+ - Validate user input
+ - Perform an action
 
 ```ruby
 class TypicalForm < Gourami::Form
@@ -32,7 +32,7 @@ class TypicalForm < Gourami::Form
   attribute(:typical_attribute)
 
   def validate
-    # Define Your validation rules here
+    # Define your validation rules here
   end
 
   def perform
@@ -131,7 +131,7 @@ class UpdateFishBowl < CreateFishBowl
   attribute(:filter_included, type: :boolean, default: false)
 
   def self.new_from_record(fish_bowl)
-    new({ fish_bowl: fish_bowl }.merge(fish_bowl.attributes))
+    new(fish_bowl.attributes.merge(fish_bowl: fish_bowl))
   end
 
   def validate
@@ -165,7 +165,7 @@ class UpdateFishBowl < CreateFishBowl
   # All attributes and validations inherited from CreateFishBowl.
 
   def self.new_from_record(fish_bowl)
-    new({ fish_bowl: fish_bowl }.merge(fish_bowl.attributes))
+    new(fish_bowl.attributes.merge(fish_bowl: fish_bowl))
   end
 
   def perform

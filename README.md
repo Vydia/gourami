@@ -120,7 +120,7 @@ end
 ### Example of a form that Updates a record
 
 ```ruby
-class UpdateFishBowl < CreateFishBowl
+class UpdateFishBowl < Gourami::Form
 
   record(:fish_bowl)
 

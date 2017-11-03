@@ -2,6 +2,22 @@ require_relative "../spec_helper"
 
 describe Gourami::Extensions::Changes do
   describe "#changes?" do
+    describe "when the provided attribute is not watching changes" do
+      let(:form_class) do
+        Class.new(Gourami::Form).tap do |form|
+          form.send(:include, Gourami::Extensions::Changes)
+          form.attribute(:bar)
+        end
+      end
+
+      it "raises a configuration exception on initialize" do
+        form = form_class.new
+        assert_raises(Gourami::NotWatchingChangesError) do
+          form.changes?(:bar)
+        end
+      end
+    end
+
     describe ":watch_changes => true" do
       describe "when there is a record" do
         let(:form_class) do
@@ -36,6 +52,40 @@ describe Gourami::Extensions::Changes do
           form = form_class.new
           form.set_attributes(:bar => "something else", :foo => record)
           assert_equal(true, form.changes?(:bar))
+        end
+
+        it "when the attribute is provided in its writer and is the same it returns false" do
+          record = OpenStruct.new(:bar => "baz")
+          form = form_class.new
+          form.foo = record
+          form.bar = "baz"
+          assert_equal(false, form.changes?(:bar))
+        end
+
+        it "when the attribute is provided in its writer and is different it returns true" do
+          record = OpenStruct.new(:bar => "baz")
+          form = form_class.new
+          form.foo = record
+          form.bar = "something else"
+          assert_equal(true, form.changes?(:bar))
+        end
+
+        it "when the attribute is changed multiple times and ends up being different it returns true" do
+          record = OpenStruct.new(:bar => "baz")
+          form = form_class.new
+          form.foo = record
+          form.bar = "baz"
+          form.bar = "something else"
+          assert_equal(true, form.changes?(:bar))
+        end
+
+        it "when the attribute is changed multiple times and ends up being the same it returns false" do
+          record = OpenStruct.new(:bar => "baz")
+          form = form_class.new
+          form.foo = record
+          form.bar = "something else"
+          form.bar = "baz"
+          assert_equal(false, form.changes?(:bar))
         end
 
         it "when the attribute is not provided and record has a value for the attribute it returns true" do

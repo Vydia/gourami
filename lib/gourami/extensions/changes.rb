@@ -8,7 +8,6 @@ module Gourami
 
         def attribute(name, options = {}, &default_block)
           super.tap do
-
             mixin = Module.new do |mixin|
               watch_changes = options.fetch(:watch_changes, false)
               if watch_changes

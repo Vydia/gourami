@@ -1,4 +1,4 @@
 module Gourami
-  class RequiredAttributeError < StandardError
+  class RequiredAttributeError < Gourami::Error
   end
 end

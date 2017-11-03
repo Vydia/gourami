@@ -23,38 +23,42 @@ module Gourami
         options = options.dup
         options[:default] = default_block if block_given?
 
-        unless options[:skip_reader]
-          define_method(:"#{name}") do
-            value = instance_variable_get(:"@#{name}")
-            default = options[:default]
+        mixin = Module.new do |mixin|
+          unless options[:skip_reader]
+            mixin.send(:define_method, :"#{name}") do
+              value = instance_variable_get(:"@#{name}")
+              default = options[:default]
 
-            if value.nil? && default
-              default.respond_to?(:call) ? instance_exec(&default) : default
-            else
-              value
+              if value.nil? && default
+                default.respond_to?(:call) ? instance_exec(&default) : default
+              else
+                value
+              end
+            end
+          end
+
+          # Define external setter.
+          mixin.send(:define_method, :"#{name}=") do |value|
+            provided_attributes_names[name.to_s] = options
+            send(:"_#{name}=", value)
+          end
+
+          # Define internal setter.
+          mixin.send(:define_method, :"_#{name}=") do |value|
+            value = setter_filter(name, value, options)
+            instance_variable_set(:"@#{name}", value)
+          end
+          mixin.send(:private, :"_#{name}=")
+
+          case options[:type]
+          when :boolean
+            mixin.send(:define_method, :"#{name}?") do
+              !!send(name)
             end
           end
         end
 
-        # Define external setter.
-        define_method(:"#{name}=") do |value|
-          provided_attributes_names[name.to_s] = options
-          send(:"_#{name}=", value)
-        end
-
-        # Define internal setter.
-        define_method(:"_#{name}=") do |value|
-          value = setter_filter(name, value, options)
-          instance_variable_set(:"@#{name}", value)
-        end
-        private :"_#{name}="
-
-        case options[:type]
-        when :boolean
-          define_method(:"#{name}?") do
-            !!send(name)
-          end
-        end
+        include(mixin)
 
         attributes[name] = options
       end
@@ -71,7 +75,7 @@ module Gourami
         define_method(:record) do
           send(name)
         end
-        attribute(name, options.merge(:skip => true))
+        attribute(name, options.merge(:skip => true, :record => true))
       end
 
       # Retrieve the list of attributes of the form.

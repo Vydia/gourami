@@ -190,7 +190,7 @@ describe Gourami::Extensions::Changes do
         Class.new(Gourami::Form).tap do |form|
           form.send(:include, Gourami::Extensions::Changes)
           form.attribute(:bar, :watch_changes => ->(new_value) {
-            changed_attributes[:baz] = true
+            changed(:baz)
 
             false
           })
@@ -212,7 +212,6 @@ describe Gourami::Extensions::Changes do
           form.send(:include, Gourami::Extensions::Changes)
           form.send(:include, Gourami::Coercer)
           form.attribute(:foo, :type => :integer, :watch_changes => ->(new_value) {
-            # binding.pry
             new_value_class = new_value.class
 
             false

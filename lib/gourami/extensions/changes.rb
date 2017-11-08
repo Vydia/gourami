@@ -41,8 +41,9 @@ module Gourami
       end
 
       def changes?(attribute_name)
-        changed_attributes.fetch(attribute_name) do
-          options = self.class.attributes.fetch(attribute_name, {})
+        attribute_name_sym = attribute_name.to_sym
+        changed_attributes.fetch(attribute_name_sym) do
+          options = self.class.attributes.fetch(attribute_name_sym, {})
           watch_changes = options.fetch(:watch_changes, false)
 
           return false if watch_changes
@@ -50,6 +51,10 @@ module Gourami
           raise NotWatchingChangesError, "`#{attribute_name}` is not being watched for changes. " \
             "Try `attribute(:#{attribute_name}, :watch_changes => true)`"
         end
+      end
+
+      def changed(attribute_name)
+        changed_attributes[attribute_name.to_sym] = true
       end
 
       private

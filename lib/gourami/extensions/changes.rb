@@ -13,7 +13,7 @@ module Gourami
                 mixin.send(:define_method, :"_#{name}=") do |value|
                   super(value).tap do
                     new_value = instance_variable_get(:"@#{name}")
-                    did_change = if watch_changes.respond_to?(:call)
+                    attribute_did_change = if watch_changes.respond_to?(:call)
                       instance_exec(new_value, &watch_changes)
                     elsif !defined?(record)
                       raise ConfigurationError, "Default `watch_changes` behavior not available without a `record`. Try `attribute(:#{name}, :watch_changes => ->(new_value) { new_value != custom_check_logic )`"
@@ -23,9 +23,11 @@ module Gourami
                       record.send(name) != new_value
                     end
 
-                    raise WatchChangesError, "`watch_changes` block for `#{name.inspect}` must return one of #{WATCH_CHANGES_VALID_RETURN_VALUES.inspect}." unless WATCH_CHANGES_VALID_RETURN_VALUES.include?(did_change)
+                    unless WATCH_CHANGES_VALID_RETURN_VALUES.include?(attribute_did_change)
+                      raise WatchChangesError, "`watch_changes` block for `#{name.inspect}` must return one of #{WATCH_CHANGES_VALID_RETURN_VALUES.inspect}."
+                    end
 
-                    changed_attributes[name] = did_change
+                    did_change(name, attribute_did_change)
                   end
                 end
                 mixin.send(:private, :"_#{name}=")
@@ -54,7 +56,7 @@ module Gourami
       end
 
       def did_change(attribute_name, changed = true)
-        changed_attributes[attribute_name.to_sym] = changed
+        changed_attributes[attribute_name.to_sym] = !!changed
       end
 
       private

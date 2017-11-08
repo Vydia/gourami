@@ -1,5 +1,5 @@
 module Gourami
-  class ValidationError < StandardError
+  class ValidationError < Gourami::Error
 
     def self.stringify_errors(errors)
       [].tap do |array|

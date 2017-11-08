@@ -186,22 +186,76 @@ describe Gourami::Extensions::Changes do
     end
 
     describe "watch_changes can apply other changes too" do
-      let(:form_class) do
-        Class.new(Gourami::Form).tap do |form|
-          form.send(:include, Gourami::Extensions::Changes)
-          form.attribute(:bar, :watch_changes => ->(new_value) {
-            changed(:baz)
+      describe "when calling did_change with default 2nd argument" do
+        let(:form_class) do
+          Class.new(Gourami::Form).tap do |form|
+            form.send(:include, Gourami::Extensions::Changes)
+            form.attribute(:bar, :watch_changes => ->(new_value) {
+              did_change(:baz)
 
-            false
-          })
+              false
+            })
+          end
+        end
+
+        it "returns true for the side effect" do
+          form = form_class.new
+
+          assert_equal(true, form.changes?(:baz))
+          assert_equal(false, form.changes?(:bar))
         end
       end
 
-      it "returns true for the side effect" do
-        form = form_class.new
+      describe "when calling did_change with `false` as 2nd argument" do
+        let(:form_class) do
+          Class.new(Gourami::Form).tap do |form|
+            form.send(:include, Gourami::Extensions::Changes)
+            form.attribute(:foo, :watch_changes => ->(_new_value) { true })
+            form.attribute(:bar, :watch_changes => ->(_new_value) {
+              did_change(:foo, false)
 
-        assert_equal(true, form.changes?(:baz))
-        assert_equal(false, form.changes?(:bar))
+              false
+            })
+          end
+        end
+
+        it "returns true for the side effect" do
+          form = form_class.new
+
+          assert_equal(false, form.changes?(:foo))
+
+          form.foo = "foo"
+          assert_equal(true, form.changes?(:foo))
+
+          form.bar = "bar"
+          assert_equal(false, form.changes?(:foo))
+        end
+      end
+
+      describe "when the order is reversed" do
+        let(:form_class) do
+          Class.new(Gourami::Form).tap do |form|
+            form.send(:include, Gourami::Extensions::Changes)
+            form.attribute(:bar, :watch_changes => ->(_new_value) {
+              did_change(:foo, false)
+
+              false
+              })
+            form.attribute(:foo, :watch_changes => ->(_new_value) { true })
+          end
+        end
+
+        it "the last defined attribute is the one used when mass-assigning attributes like with initialize or set_attributes" do
+          form = form_class.new
+
+          assert_equal(true, form.changes?(:foo))
+
+          form.foo = "foo"
+          assert_equal(true, form.changes?(:foo))
+
+          form.bar = "bar"
+          assert_equal(false, form.changes?(:foo))
+        end
       end
     end
 

@@ -53,8 +53,8 @@ module Gourami
         end
       end
 
-      def changed(attribute_name)
-        changed_attributes[attribute_name.to_sym] = true
+      def did_change(attribute_name, changed = true)
+        changed_attributes[attribute_name.to_sym] = changed
       end
 
       private

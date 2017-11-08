@@ -6,19 +6,21 @@ module Gourami
       module ClassMethods
         def attribute(name, options = {}, &default_block)
           super.tap do
-            mixin = Module.new do |mixin|
-              watch_changes = options.fetch(:watch_changes, false)
-              if watch_changes
+            watch_changes = options.fetch(:watch_changes, false)
+
+            if watch_changes
+              mixin = Module.new do |mixin|
                 mixin.send(:define_method, :"_#{name}=") do |value|
-                  super(value).tap do |new_value|
+                  super(value).tap do
+                    new_value = instance_variable_get(:"@#{name}")
                     did_change = if watch_changes.respond_to?(:call)
-                                   instance_exec(value, &watch_changes)
-                                 elsif !defined?(record)
-                                   raise ConfigurationError, "Default `watch_changes` behavior not available without a `record`. Try `attribute(:#{name}, :watch_changes => ->(new_value) { new_value != custom_check_logic )`"
-                                 elsif record.nil?
-                                   !new_value.nil?
-                                 else
-                                   record.send(name) != new_value
+                      instance_exec(new_value, &watch_changes)
+                    elsif !defined?(record)
+                      raise ConfigurationError, "Default `watch_changes` behavior not available without a `record`. Try `attribute(:#{name}, :watch_changes => ->(new_value) { new_value != custom_check_logic )`"
+                    elsif record.nil?
+                      !new_value.nil?
+                    else
+                      record.send(name) != new_value
                     end
 
                     raise WatchChangesError, "`watch_changes` block for `#{name.inspect}` must return one of #{WATCH_CHANGES_VALID_RETURN_VALUES.inspect}." unless WATCH_CHANGES_VALID_RETURN_VALUES.include?(did_change)
@@ -28,9 +30,8 @@ module Gourami
                 end
                 mixin.send(:private, :"_#{name}=")
               end
+              include(mixin)
             end
-
-            include(mixin)
           end
         end
       end

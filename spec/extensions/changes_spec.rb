@@ -189,7 +189,6 @@ describe Gourami::Extensions::Changes do
       let(:form_class) do
         Class.new(Gourami::Form).tap do |form|
           form.send(:include, Gourami::Extensions::Changes)
-          form.attribute(:foo, :skip => true)
           form.attribute(:bar, :watch_changes => ->(new_value) {
             changed_attributes[:baz] = true
 
@@ -203,6 +202,25 @@ describe Gourami::Extensions::Changes do
 
         assert_equal(true, form.changes?(:baz))
         assert_equal(false, form.changes?(:bar))
+      end
+    end
+
+    describe "when type coercing is required" do
+      it "coerces attribute value before passing it to watch_changes" do
+        new_value_class = nil
+        form_class = Class.new(Gourami::Form).tap do |form|
+          form.send(:include, Gourami::Extensions::Changes)
+          form.send(:include, Gourami::Coercer)
+          form.attribute(:foo, :type => :integer, :watch_changes => ->(new_value) {
+            # binding.pry
+            new_value_class = new_value.class
+
+            false
+          })
+        end
+
+        form = form_class.new(:foo => "12345")
+        assert_equal(Fixnum, new_value_class)
       end
     end
   end

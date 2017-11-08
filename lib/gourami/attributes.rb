@@ -45,8 +45,7 @@ module Gourami
 
           # Define internal setter.
           mixin.send(:define_method, :"_#{name}=") do |value|
-            value = setter_filter(name, value, options)
-            instance_variable_set(:"@#{name}", value)
+            instance_variable_set(:"@#{name}", setter_filter(name, value, options))
           end
           mixin.send(:private, :"_#{name}=")
 

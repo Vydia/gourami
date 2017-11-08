@@ -235,7 +235,7 @@ class UpdatePageWidgets < Gourami::Form
   record(:page)
   attribute(:widgets,
     :type => :array,
-    :element_type => :string
+    :element_type => :string,
     :watch_changes => ->(new_value) {
       did_change(:pro_widget, new_value.include?("pro"))
       new_value.sort.uniq != page.widgets.sort.uniq

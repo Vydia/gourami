@@ -10,11 +10,17 @@ describe Gourami::Extensions::Changes do
         end
       end
 
-      it "raises a configuration exception on initialize" do
+      it "raises a NotWatchingChangesError on initialize" do
         form = form_class.new
         assert_raises(Gourami::NotWatchingChangesError) do
           form.changes?(:bar)
         end
+      end
+
+      it "does not raise a NotWatchingChangesError if set manually" do
+        form = form_class.new
+        form.send(:changed_attributes)[:bar] = true
+        assert_equal(true, form.changes?(:bar))
       end
     end
 
@@ -179,5 +185,25 @@ describe Gourami::Extensions::Changes do
       end
     end
 
+    describe "watch_changes can apply other changes too" do
+      let(:form_class) do
+        Class.new(Gourami::Form).tap do |form|
+          form.send(:include, Gourami::Extensions::Changes)
+          form.attribute(:foo, :skip => true)
+          form.attribute(:bar, :watch_changes => ->(new_value) {
+            changed_attributes[:baz] = true
+
+            false
+          })
+        end
+      end
+
+      it "returns true for the side effect" do
+        form = form_class.new
+
+        assert_equal(true, form.changes?(:baz))
+        assert_equal(false, form.changes?(:bar))
+      end
+    end
   end
 end

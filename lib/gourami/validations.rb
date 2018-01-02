@@ -96,7 +96,7 @@ module Gourami
     #   A block to determine if a given value is unique or not. It receives
     #   the value and returns true if the value is unique.
     def validate_uniqueness(attribute_name, message = nil, &block)
-      value = attributes[attribute_name]
+      value = send(attribute_name)
       unless block.call(value)
         append_error(attribute_name, message || :is_duplicated)
       end
@@ -124,7 +124,7 @@ module Gourami
     # @param attribute_name [Symbol]
     # @param format [Regexp]
     def validate_format(attribute_name, format, message = nil)
-      value = attributes[attribute_name]
+      value = send(attribute_name)
       if value && !(format =~ value)
         append_error(attribute_name, message || :is_invalid)
       end
@@ -144,7 +144,7 @@ module Gourami
 
       min = options.fetch(:min, nil)
       max = options.fetch(:max, nil)
-      value = attributes[attribute_name]
+      value = send(attribute_name)
 
       return if options[:allow_blank] && value.blank?
 
@@ -166,7 +166,7 @@ module Gourami
     # @param attribute_name [Symbol]
     # @param list [Array]
     def validate_inclusion(attribute_name, list, message = nil)
-      value = attributes[attribute_name]
+      value = send(attribute_name)
       if value && !list.include?(value)
         append_error(attribute_name, message || :isnt_listed)
       end
@@ -189,7 +189,7 @@ module Gourami
     #
     # @param attribute_name [Symbol]
     def validate_any(attribute_name, message = nil)
-      value = attributes[attribute_name]
+      value = send(attribute_name)
       if value && value.empty?
         append_error(attribute_name, message || :cant_be_empty)
       end

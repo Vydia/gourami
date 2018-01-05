@@ -124,7 +124,7 @@ module Gourami
     # @param attribute_name [Symbol]
     # @param format [Regexp]
     def validate_format(attribute_name, format, message = nil)
-      value = send(attribute_name)
+      value = attributes[attribute_name]
       if value && !(format =~ value)
         append_error(attribute_name, message || :is_invalid)
       end

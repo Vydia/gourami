@@ -5,6 +5,7 @@ describe Gourami::Validations do
     Class.new.tap do |c|
       c.send(:include, Gourami::Attributes)
       c.send(:include, Gourami::Validations)
+      c.attribute :whatever
     end
   end
 
@@ -97,6 +98,63 @@ describe Gourami::Validations do
 
       form.instance_variable_set(:@errors, :whatever => [])
       assert_equal(false, form.any_errors?)
+    end
+  end
+
+  describe Gourami::Validations do
+    describe "#validate_presence" do
+      describe "when attribute is not present (fail validation)" do
+        {
+          "" => [:cant_be_empty],
+          "     " => [:cant_be_empty],
+          :"" => [:cant_be_empty],
+          nil => [:cant_be_empty],
+          false => [:cant_be_empty]
+        }.each do |attribute_value, expected_errors|
+          describe "when value is #{attribute_value.inspect}" do
+            it "results in errors #{expected_errors.inspect} on the attribute and returns all the errors on the attribute" do
+              form = form_class.new(:whatever => attribute_value)
+              preceding_error = :is_invalid
+              assert_equal(false, form.any_errors?)
+              form.append_error(:whatever, preceding_error)
+              assert_equal({ :whatever => [preceding_error] }, form.errors)
+              assert_equal(true, form.any_errors?)
+              returned = form.validate_presence(:whatever)
+              assert_equal([preceding_error] + expected_errors, returned)
+              assert_equal({ :whatever => [preceding_error] + expected_errors }, form.errors)
+            end
+          end
+        end
+      end
+
+      describe "when attribute is present (passes validation)" do
+        [
+          "foo",
+          "    foo  ",
+          :"foo",
+          "10",
+          5,
+          true,
+          [],
+          {},
+          [5],
+          { :foo => "bar" }
+        ].each do |attribute_value|
+          describe "when value is #{attribute_value.inspect}" do
+            it "results in no additional errors on the attribute and returns nil" do
+              form = form_class.new(:whatever => attribute_value)
+              preceding_error = :is_invalid
+              assert_equal(false, form.any_errors?)
+              form.append_error(:whatever, preceding_error)
+              assert_equal({ :whatever => [preceding_error] }, form.errors)
+              assert_equal(true, form.any_errors?)
+              returned = form.validate_presence(:whatever)
+              assert_nil(returned)
+              assert_equal({ :whatever => [preceding_error] }, form.errors)
+            end
+          end
+        end
+      end
     end
   end
 end

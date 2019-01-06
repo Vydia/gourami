@@ -213,6 +213,7 @@ module Gourami
       end
     end
 
+    # TODO: Spec return value in spec/validations_spec.rb
     # Validate the range in which the attribute can be. If the value is less
     #   than the min a :less_than_min error will be appended. If the value is
     #   greater than the max a :greater_than_max error will be appended.

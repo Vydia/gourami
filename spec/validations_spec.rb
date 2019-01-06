@@ -177,5 +177,34 @@ describe Gourami::Validations do
         )
       end
     end
+
+    describe "#validate_length" do
+      describe "when attribute is not present (fail validation)" do
+        it_fails_validations(
+          :method_name => :validate_length,
+          :attribute_name => :whatever,
+          :cases => [
+            ["", [:min => 2], [:is_too_short]],
+            ["f", [:min => 2], [:is_too_short]],
+            ["       ", [:max => 5], [:is_too_long]],
+            [["only one element"], [:min => 2], [:is_too_short]],
+            [[1, 2, 3, 4], [:max => 2], [:is_too_long]]
+          ]
+        )
+      end
+
+      describe "when attribute is present (passes validation)" do
+        it_passes_validations(
+          :method_name => :validate_length,
+          :attribute_name => :whatever,
+          :cases => [
+            ["foo", [:min => 2]],
+            ["foo", [:max => 5]],
+            [["two elements", "second element"], [:min => 2]],
+            [[1], [:max => 2]]
+          ]
+        )
+      end
+    end
   end
 end

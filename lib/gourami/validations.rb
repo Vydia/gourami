@@ -150,12 +150,18 @@ module Gourami
 
       if value
         length = value.size
+        did_append_error = false
+
         if min && length < min
+          did_append_error = true
           append_error(attribute_name, options.fetch(:min_message, nil) || :is_too_short)
         end
         if max && length > max
+          did_append_error = true
           append_error(attribute_name, options.fetch(:max_message, nil) || :is_too_long)
         end
+
+        errors[attribute_name] if did_append_error
       end
     end
 

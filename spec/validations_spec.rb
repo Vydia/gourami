@@ -5,6 +5,7 @@ describe Gourami::Validations do
     Class.new.tap do |c|
       c.send(:include, Gourami::Attributes)
       c.send(:include, Gourami::Validations)
+      c.attribute :whatever
     end
   end
 
@@ -97,6 +98,113 @@ describe Gourami::Validations do
 
       form.instance_variable_set(:@errors, :whatever => [])
       assert_equal(false, form.any_errors?)
+    end
+  end
+
+  describe Gourami::Validations do
+    def self.it_fails_validations(opts)
+      attribute_name = opts.fetch(:attribute_name)
+      method_name = opts.fetch(:method_name)
+      opts.fetch(:cases).each do |attribute_value, args, expected_errors|
+        describe "#{method_name} when value is #{attribute_value.inspect} called with args #{args.inspect}" do
+          it "results in errors #{expected_errors.inspect} on the attribute and returns all the errors on the attribute" do
+            form = form_class.new(attribute_name => attribute_value)
+            preceding_error = :foo
+            assert_equal(false, form.any_errors?)
+            form.append_error(attribute_name, preceding_error)
+            assert_equal({ attribute_name => [preceding_error] }, form.errors)
+            assert_equal(true, form.any_errors?)
+            returned = form.send(method_name, attribute_name, *args)
+            assert_equal([preceding_error] + expected_errors, returned)
+            assert_equal({ attribute_name => [preceding_error] + expected_errors }, form.errors)
+          end
+        end
+      end
+    end
+
+    def self.it_passes_validations(opts)
+      attribute_name = opts.fetch(:attribute_name)
+      method_name = opts.fetch(:method_name)
+      opts.fetch(:cases).each do |attribute_value, args, expected_errors|
+        describe "#{method_name} when value is #{attribute_value.inspect} called with args #{args.inspect}" do
+          it "results in no additional errors on the attribute and returns nil" do
+            form = form_class.new(attribute_name => attribute_value)
+            preceding_error = :foo
+            assert_equal(false, form.any_errors?)
+            form.append_error(attribute_name, preceding_error)
+            assert_equal({ attribute_name => [preceding_error] }, form.errors)
+            assert_equal(true, form.any_errors?)
+            returned = form.validate_presence(attribute_name)
+            assert_nil(returned)
+            assert_equal({ attribute_name => [preceding_error] }, form.errors)
+          end
+        end
+      end
+    end
+
+    describe "#validate_presence" do
+      describe "when attribute is not present (fail validation)" do
+        it_fails_validations(
+          :method_name => :validate_presence,
+          :attribute_name => :whatever,
+          :cases => [
+            ["", [], [:cant_be_empty]],
+            ["", [:custom_error_message], [:custom_error_message]],
+            ["     ", [], [:cant_be_empty]],
+            [:"", [], [:cant_be_empty]],
+            [nil, [], [:cant_be_empty]],
+            [false, [], [:cant_be_empty]]
+          ]
+        )
+      end
+
+      describe "when attribute is present (passes validation)" do
+        it_passes_validations(
+          :method_name => :validate_presence,
+          :attribute_name => :whatever,
+          :cases => [
+            ["foo", []],
+            ["    foo  ", []],
+            [:"foo", []],
+            ["10", []],
+            [5, []],
+            [true, []],
+            [[], []],
+            [{}, []],
+            [[5], []],
+            [{ :foo => "bar" }, []]
+          ]
+        )
+      end
+    end
+
+    describe "#validate_length" do
+      describe "when attribute is not present (fail validation)" do
+        it_fails_validations(
+          :method_name => :validate_length,
+          :attribute_name => :whatever,
+          :cases => [
+            ["", [:min => 2], [:is_too_short]],
+            ["f", [:min => 2], [:is_too_short]],
+            ["       ", [:max => 5], [:is_too_long]],
+            [["only one element"], [:min => 2], [:is_too_short]],
+            [[1, 2, 3, 4], [:max => 2], [:is_too_long]]
+          ]
+        )
+      end
+
+      describe "when attribute is present (passes validation)" do
+        it_passes_validations(
+          :method_name => :validate_length,
+          :attribute_name => :whatever,
+          :cases => [
+            ["foo", [:min => 2]],
+            ["foo", [:max => 5]],
+            [["two elements", "second element"], [:min => 2]],
+            [[1], [:max => 2]]
+          ]
+        )
+      end
     end
   end
 end

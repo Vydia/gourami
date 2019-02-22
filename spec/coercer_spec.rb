@@ -18,6 +18,22 @@ describe Gourami::Coercer do
           assert_equal("", coercer.coerce_string(nil, :allow_nil => false))
         end
       end
+
+      describe ":strip" do
+        let(:input) { " foo " }
+
+        it "strips by defaults" do
+          assert_equal("foo", coercer.coerce_string(input))
+        end
+
+        it "strips when option is true" do
+          assert_equal("foo", coercer.coerce_string(input, :strip => true))
+        end
+
+        it "does not strip when option is false" do
+          assert_equal(input, coercer.coerce_string(input, :strip => false))
+        end
+      end
     end
   end
 
@@ -25,13 +41,13 @@ describe Gourami::Coercer do
     describe "options" do
       let(:coercer_options) { { :element_type => element_type } }
 
-      let(:coercer_value) { {
+      let(:input) { {
         12345 => {
           :key => :value
         }
       } }
 
-      subject { coercer.coerce_array(coercer_value, coercer_options) }
+      subject { coercer.coerce_array(input, coercer_options) }
 
       describe "when :element_type is a Symbol" do
         let(:element_type) { :hash }

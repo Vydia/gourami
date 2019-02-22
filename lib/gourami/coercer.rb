@@ -24,15 +24,15 @@ module Gourami
     # @param value [Object]
     # @option allow_nil [Boolean] (true)
     # @option upcase [Boolean] (false)
-    # @option strip [Boolean] (false)
+    # @option strip [Boolean] (true)
     #
     # @return [String, nil]
     def coerce_string(value, options = {})
       return nil if value.nil? && options.fetch(:allow_nil, true)
 
       value = value.to_s.dup.force_encoding(Encoding::UTF_8)
-      value.strip! if options[:strip]
-      value.upcase! if options[:upcase]
+      value.strip! if options.fetch(:strip, true)
+      value.upcase! if options.fetch(:upcase, false)
 
       value
     end

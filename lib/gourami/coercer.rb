@@ -28,7 +28,7 @@ module Gourami
     #
     # @return [String, nil]
     def coerce_string(value, options = {})
-      return nil if value.nil? && options.fetch(:allow_nil, true)
+      return if value.nil? && options.fetch(:allow_nil, true)
 
       value = value.to_s.dup.force_encoding(Encoding::UTF_8)
       value.strip! if options.fetch(:strip, true)
@@ -44,7 +44,7 @@ module Gourami
     #
     # @return [Boolean, nil]
     def coerce_boolean(value, options = {})
-      return nil if options[:allow_nil] && (value.nil? || value == "")
+      return if options[:allow_nil] && (value.nil? || value == "")
       return false if value.to_s.strip == "false"
       !!value && !coerce_string(value).strip.empty?
     end
@@ -63,6 +63,8 @@ module Gourami
     # @return [Array]
     #   The coerced Array.
     def coerce_array(value, options = {})
+      return if options[:allow_nil] && value.nil?
+
       element_type = options[:element_type]
       value = value.values if value.kind_of?(Hash)
 
@@ -163,7 +165,7 @@ module Gourami
     #   A Date if the value can be coerced or nil otherwise.
     def coerce_date(value, options = {})
       value = coerce_string(value, options)
-      return nil if value.nil?
+      return if value.nil?
       begin
         Date.strptime(value, "%Y-%m-%d")
       rescue ArgumentError
@@ -180,7 +182,7 @@ module Gourami
     #   A Time if the value can be coerced or nil otherwise.
     def coerce_time(value, options = {})
       value = coerce_string(value, options)
-      return nil if !value || value.empty?
+      return if !value || value.empty?
 
       begin
         Time.parse(value).utc

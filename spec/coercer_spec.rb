@@ -14,6 +14,10 @@ describe Gourami::Coercer do
           assert_nil(coercer.coerce_string(nil, :allow_nil => true))
         end
 
+        it "when empty string returns empty string" do
+          assert_equal("", coercer.coerce_string("", :allow_nil => true))
+        end
+
         it "when false converts to string" do
           assert_equal("", coercer.coerce_string(nil, :allow_nil => false))
         end
@@ -48,6 +52,22 @@ describe Gourami::Coercer do
       } }
 
       subject { coercer.coerce_array(input, coercer_options) }
+
+      describe ":allow_nil" do
+        let(:coercer_options) { { :element_type => element_type, :allow_nil => true } }
+
+        it "when not provided returns empty array" do
+          assert_equal([], coercer.coerce_array(nil))
+        end
+
+        it "when true returns nil" do
+          assert_nil(coercer.coerce_array(nil, :allow_nil => true))
+        end
+
+        it "when false converts to empty array" do
+          assert_equal([], coercer.coerce_array(nil, :allow_nil => false))
+        end
+      end
 
       describe "when :element_type is a Symbol" do
         let(:element_type) { :hash }

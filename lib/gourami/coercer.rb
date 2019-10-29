@@ -28,7 +28,7 @@ module Gourami
     #
     # @return [String, nil]
     def coerce_string(value, options = {})
-      return if value.nil? && options.fetch(:allow_nil, true)
+      return if (value.nil? || value.empty?) && options.fetch(:allow_nil, true)
 
       value = value.to_s.dup.force_encoding(Encoding::UTF_8)
       value.strip! if options.fetch(:strip, true)

@@ -15,7 +15,7 @@ describe Gourami::Coercer do
         end
 
         it "when empty string returns empty string" do
-          assert_equal("", coercer.coerce_string("", :allow_nil => true))
+          assert_nil(coercer.coerce_string("", :allow_nil => true))
         end
 
         it "when false converts to string" do

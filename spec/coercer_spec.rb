@@ -41,6 +41,58 @@ describe Gourami::Coercer do
     end
   end
 
+  describe "#coerce_boolean" do
+    describe "options" do
+      describe ":allow_nil" do
+        it "when not provided returns false" do
+          assert_equal(false, coercer.coerce_boolean(nil))
+        end
+
+        it "when true returns nil" do
+          assert_nil(coercer.coerce_boolean(nil, :allow_nil => true))
+        end
+
+        it "when true and given empty string returns nil" do
+          assert_nil(coercer.coerce_boolean("", :allow_nil => true))
+        end
+
+        it "when false and given empty string returns false" do
+          assert_equal(false, coercer.coerce_boolean("", :allow_nil => false))
+        end
+
+        it "when false converts to string" do
+          assert_equal(false, coercer.coerce_boolean(nil, :allow_nil => false))
+        end
+      end
+    end
+  end
+
+  describe "#coerce_phone" do
+    describe "options" do
+      describe ":allow_nil" do
+        it "when not provided returns nil" do
+          assert_nil(coercer.coerce_phone(nil))
+        end
+
+        it "when true returns nil" do
+          assert_nil(coercer.coerce_phone(nil, :allow_nil => true))
+        end
+
+        it "when true and given empty string returns nil" do
+          assert_nil(coercer.coerce_phone("", :allow_nil => true))
+        end
+
+        it "when false and given empty string returns empty string" do
+          assert_equal("", coercer.coerce_phone("", :allow_nil => false))
+        end
+
+        it "when false converts to string" do
+          assert_equal("", coercer.coerce_phone(nil, :allow_nil => false))
+        end
+      end
+    end
+  end
+
   describe "#coerce_array" do
     describe "options" do
       let(:coercer_options) { { :element_type => element_type } }

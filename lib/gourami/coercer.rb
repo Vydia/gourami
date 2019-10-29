@@ -46,7 +46,7 @@ module Gourami
     def coerce_boolean(value, options = {})
       return if options[:allow_nil] && (value.nil? || value == "")
       return false if value.to_s.strip == "false"
-      !!value && !coerce_string(value).strip.empty?
+      !!value && !coerce_string(value, :allow_nil => false).strip.empty?
     end
 
     # Coerce the value into an Array.
@@ -109,7 +109,8 @@ module Gourami
     #
     # @return [String, nil]
     def coerce_phone(value, options = {})
-      value ? coerce_string(value).upcase.gsub(/[^+0-9A-Z]/,"") : nil
+      value = coerce_string(value, options)
+      value ? value.upcase.gsub(/[^+0-9A-Z]/, "") : nil
     end
 
     # Coerce the value into a Hash.

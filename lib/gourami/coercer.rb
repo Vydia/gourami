@@ -124,8 +124,11 @@ module Gourami
     # @return [Hash]
     #   The coerced Hash.
     def coerce_hash(value, options = {})
+      # return if options[:allow_nil] && value.nil?
+
       hash_key_type = options[:key_type]
       hash_value_type = options[:value_type]
+      # TODO: Fix uninitialized constant Gourami::Coercer::Sequel
       if value.kind_of?(Hash) || value.kind_of?(Sequel::Postgres::JSONHash)
         value.each_with_object({}) do |(key, value), coerced_hash|
           key_type = hash_key_type.respond_to?(:call) ? hash_key_type.call(key, value) : hash_key_type

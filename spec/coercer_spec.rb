@@ -14,38 +14,12 @@ describe Gourami::Coercer do
           assert_nil(coercer.coerce_string(nil, :allow_nil => true))
         end
 
-        it "when empty string returns nil" do
+        it "when empty string returns empty string" do
           assert_nil(coercer.coerce_string("", :allow_nil => true))
         end
 
         it "when false converts to string" do
           assert_equal("", coercer.coerce_string(nil, :allow_nil => false))
-        end
-      end
-
-      describe ":nil_when_empty" do
-        it "when :nil_when_empty is true and :allow_nil is true and given empty string, returns nil" do
-          assert_nil(coercer.coerce_string("", :allow_nil => true, :nil_when_empty => true))
-        end
-
-        it "when :nil_when_empty is true and :allow_nil is false and given empty string, returns empty string" do
-          assert_equal("", coercer.coerce_string("", :allow_nil => false, :nil_when_empty => true))
-        end
-
-        it "when :nil_when_empty is default and :allow_nil is default and given empty string, returns nil" do
-          assert_nil(coercer.coerce_string(""))
-        end
-
-        it "when :nil_when_empty is false and :allow_nil is default and given empty string, returns empty string" do
-          assert_nil(coercer.coerce_string(nil, :nil_when_empty => true))
-        end
-
-        it "when :nil_when_empty is false and :allow_nil is default and given empty string, returns nil" do
-          assert_nil(coercer.coerce_string(nil, :nil_when_empty => false))
-        end
-
-        it "when :nil_when_empty is false and :allow_nil is default and given empty string, returns empty string" do
-          assert_equal("", coercer.coerce_string("", :nil_when_empty => false))
         end
       end
 

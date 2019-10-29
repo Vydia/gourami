@@ -23,14 +23,12 @@ module Gourami
     #
     # @param value [Object]
     # @option allow_nil [Boolean] (true)
-    # @option nil_when_empty [Boolean] (true)
     # @option upcase [Boolean] (false)
     # @option strip [Boolean] (true)
     #
     # @return [String, nil]
     def coerce_string(value, options = {})
-      value = nil if (value.nil? || value.empty?) && options.fetch(:nil_when_empty, true)
-      return if value.nil? && options.fetch(:allow_nil, true)
+      return if (value.nil? || value.empty?) && options.fetch(:allow_nil, true)
 
       value = value.to_s.dup.force_encoding(Encoding::UTF_8)
       value.strip! if options.fetch(:strip, true)

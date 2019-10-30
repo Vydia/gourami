@@ -15,7 +15,11 @@ describe Gourami::Coercer do
         end
 
         it "when empty string returns empty string" do
-          assert_nil(coercer.coerce_string("", :allow_nil => true))
+          assert_equal("", coercer.coerce_string("", :allow_nil => true))
+        end
+
+        it "when empty string and nil_when_empty is true returns nil" do
+          assert_nil(coercer.coerce_string("", :allow_nil => true, :nil_when_empty => true))
         end
 
         it "when false converts to string" do
@@ -86,8 +90,12 @@ describe Gourami::Coercer do
           assert_nil(coercer.coerce_phone(nil, :allow_nil => true))
         end
 
-        it "when true and given empty string returns nil" do
-          assert_nil(coercer.coerce_phone("", :allow_nil => true))
+        it "when true and given empty string returns empty string" do
+          assert_equal("", coercer.coerce_phone("", :allow_nil => true))
+        end
+
+        it "when true and given empty string and nil_when_empty is true returns nil" do
+          assert_nil(coercer.coerce_phone("", :allow_nil => true, :nil_when_empty => true))
         end
 
         it "when false and given empty string returns empty string" do

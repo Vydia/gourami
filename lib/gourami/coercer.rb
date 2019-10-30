@@ -12,9 +12,7 @@ module Gourami
     def setter_filter(attribute_name, value, options)
       type = options[:type]
       coercer_method_name = :"coerce_#{type}"
-      if type
-        value = send(coercer_method_name, value, options)
-      end
+      value = send(coercer_method_name, value, options) if type
 
       super(attribute_name, value, options)
     end
@@ -23,12 +21,17 @@ module Gourami
     #
     # @param value [Object]
     # @option allow_nil [Boolean] (true)
+    # @option nil_when_empty [Boolean] (true)
     # @option upcase [Boolean] (false)
     # @option strip [Boolean] (true)
     #
     # @return [String, nil]
     def coerce_string(value, options = {})
-      return if value.nil? && options.fetch(:allow_nil, true)
+      if options.fetch(:allow_nil, true)
+        return if value.nil?
+        value = value.to_s
+        return if value.empty? && options.fetch(:nil_when_empty, false)
+      end
 
       value = value.to_s.dup.force_encoding(Encoding::UTF_8)
       value.strip! if options.fetch(:strip, true)
@@ -46,7 +49,7 @@ module Gourami
     def coerce_boolean(value, options = {})
       return if options[:allow_nil] && (value.nil? || value == "")
       return false if value.to_s.strip == "false"
-      !!value && !coerce_string(value).strip.empty?
+      !!value && !coerce_string(value, :allow_nil => false).strip.empty?
     end
 
     # Coerce the value into an Array.
@@ -66,30 +69,26 @@ module Gourami
       return if options[:allow_nil] && value.nil?
 
       element_type = options[:element_type]
-      value = value.values if value.kind_of?(Hash)
+      value = value.values if value.is_a?(Hash)
 
-      if options[:split_by] && value.kind_of?(String)
+      if options[:split_by] && value.is_a?(String)
         value = value.split(options[:split_by]).map(&:strip)
       end
 
-      if value.kind_of?(Array)
-        if element_type
-          if element_type.kind_of?(Hash)
-            element_type_options = element_type
-            element_type = element_type[:type]
-          else
-            element_type_options = {}
-          end
+      return [] unless value.is_a?(Array)
+      return value unless element_type
 
-          coercer_method_name = :"coerce_#{element_type}"
-          value.map do |array_element|
-            send(coercer_method_name, array_element, element_type_options)
-          end
-        else
-          value
-        end
+      if element_type.is_a?(Hash)
+        element_type_options = element_type
+        element_type = element_type[:type]
       else
-        []
+        element_type_options = {}
+      end
+
+      coercer_method_name = :"coerce_#{element_type}"
+
+      value.map do |array_element|
+        send(coercer_method_name, array_element, element_type_options)
       end
     end
 
@@ -98,7 +97,7 @@ module Gourami
     # @param value [Object]
     #
     # @return [Float, nil]
-    def coerce_float(value, options = {})
+    def coerce_float(value, _options = {})
       Float(value) rescue nil
     end
 
@@ -109,7 +108,8 @@ module Gourami
     #
     # @return [String, nil]
     def coerce_phone(value, options = {})
-      value ? coerce_string(value).upcase.gsub(/[^+0-9A-Z]/,"") : nil
+      value = coerce_string(value, options)
+      value ? value.upcase.gsub(/[^+0-9A-Z]/, "") : nil
     end
 
     # Coerce the value into a Hash.
@@ -126,17 +126,16 @@ module Gourami
     def coerce_hash(value, options = {})
       hash_key_type = options[:key_type]
       hash_value_type = options[:value_type]
-      if value.kind_of?(Hash) || value.kind_of?(Sequel::Postgres::JSONHash)
-        value.each_with_object({}) do |(key, value), coerced_hash|
-          key_type = hash_key_type.respond_to?(:call) ? hash_key_type.call(key, value) : hash_key_type
-          key = send("coerce_#{key_type}", key) if key_type
 
-          value_type = hash_value_type.respond_to?(:call) ? hash_value_type.call(key, value) : hash_value_type
-          value = send("coerce_#{value_type}", value) if value_type
-          coerced_hash[key] = value
-        end
-      else
-        {}
+      return {} unless value.is_a?(Hash) || (defined?(Sequel::Postgres::JSONHash) && value.is_a?(Sequel::Postgres::JSONHash))
+
+      value.each_with_object({}) do |(key, value), coerced_hash|
+        key_type = hash_key_type.respond_to?(:call) ? hash_key_type.call(key, value) : hash_key_type
+        key = send("coerce_#{key_type}", key) if key_type
+
+        value_type = hash_value_type.respond_to?(:call) ? hash_value_type.call(key, value) : hash_value_type
+        value = send("coerce_#{value_type}", value) if value_type
+        coerced_hash[key] = value
       end
     end
 
@@ -147,13 +146,11 @@ module Gourami
     #
     # @return [Integer, nil]
     #   An Integer if the value can be coerced or nil otherwise.
-    def coerce_integer(value, options = {})
+    def coerce_integer(value, _options = {})
       value = value.to_s
-      if value.match(/\A0|[1-9]\d*\z/)
-        value.to_i
-      else
-        nil
-      end
+      return unless value =~ /\A0|[1-9]\d*\z/
+
+      value.to_i
     end
 
     # Coerce the value into a Date.
@@ -200,13 +197,13 @@ module Gourami
     # @return [Hash, nil]
     #   The hash will contain the file String :filename and the File :tempfile,
     #   or nil otherwise.
-    def coerce_file(value, options = {})
-      if value.kind_of?(Hash) && !value[:filename].to_s.empty?
-        tempfile = value[:tempfile]
-        if tempfile.kind_of?(File) || tempfile.kind_of?(Tempfile)
-          value
-        end
-      end
+    def coerce_file(value, _options = {})
+      return unless value.is_a?(Hash) && !value[:filename].to_s.empty?
+
+      tempfile = value[:tempfile]
+      return unless tempfile.is_a?(File) || tempfile.is_a?(Tempfile)
+
+      value
     end
 
   end

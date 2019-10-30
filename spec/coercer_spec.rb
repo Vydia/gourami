@@ -18,6 +18,10 @@ describe Gourami::Coercer do
           assert_equal("", coercer.coerce_string("", :allow_nil => true))
         end
 
+        it "when empty string and nil_when_empty is true returns nil" do
+          assert_nil(coercer.coerce_string("", :allow_nil => true, :nil_when_empty => true))
+        end
+
         it "when false converts to string" do
           assert_equal("", coercer.coerce_string(nil, :allow_nil => false))
         end
@@ -36,6 +40,70 @@ describe Gourami::Coercer do
 
         it "does not strip when option is false" do
           assert_equal(input, coercer.coerce_string(input, :strip => false))
+        end
+      end
+    end
+  end
+
+  describe "#coerce_boolean" do
+    describe "options" do
+      describe ":allow_nil" do
+        it "when not provided returns false" do
+          assert_equal(false, coercer.coerce_boolean(nil))
+        end
+
+        it "when true returns nil" do
+          assert_nil(coercer.coerce_boolean(nil, :allow_nil => true))
+        end
+
+        it "when true and given empty string returns nil" do
+          assert_nil(coercer.coerce_boolean("", :allow_nil => true))
+        end
+
+        it "when false and given empty string returns false" do
+          assert_equal(false, coercer.coerce_boolean("", :allow_nil => false))
+        end
+
+        it "when false converts to string" do
+          assert_equal(false, coercer.coerce_boolean(nil, :allow_nil => false))
+        end
+
+        it "when true returns true" do
+          assert_equal(true, coercer.coerce_boolean(true))
+        end
+
+        it "when false returns false" do
+          assert_equal(false, coercer.coerce_boolean(false))
+        end
+      end
+    end
+  end
+
+  describe "#coerce_phone" do
+    describe "options" do
+      describe ":allow_nil" do
+        it "when not provided returns nil" do
+          assert_nil(coercer.coerce_phone(nil))
+        end
+
+        it "when true returns nil" do
+          assert_nil(coercer.coerce_phone(nil, :allow_nil => true))
+        end
+
+        it "when true and given empty string returns empty string" do
+          assert_equal("", coercer.coerce_phone("", :allow_nil => true))
+        end
+
+        it "when true and given empty string and nil_when_empty is true returns nil" do
+          assert_nil(coercer.coerce_phone("", :allow_nil => true, :nil_when_empty => true))
+        end
+
+        it "when false and given empty string returns empty string" do
+          assert_equal("", coercer.coerce_phone("", :allow_nil => false))
+        end
+
+        it "when false converts to string" do
+          assert_equal("", coercer.coerce_phone(nil, :allow_nil => false))
         end
       end
     end

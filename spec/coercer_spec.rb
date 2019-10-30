@@ -63,6 +63,14 @@ describe Gourami::Coercer do
         it "when false converts to string" do
           assert_equal(false, coercer.coerce_boolean(nil, :allow_nil => false))
         end
+
+        it "when true returns true" do
+          assert_equal(true, coercer.coerce_boolean(true))
+        end
+
+        it "when false returns false" do
+          assert_equal(false, coercer.coerce_boolean(false))
+        end
       end
     end
   end

@@ -68,7 +68,7 @@ describe Gourami::Validations do
       )
     end
 
-    describe "when resource error is apprended" do
+    describe "when resource error is appended" do
       let(:form_class) do
         Class.new.tap do |c|
           c.send(:include, Gourami::Attributes)
@@ -78,7 +78,7 @@ describe Gourami::Validations do
         end
       end
 
-      it "raises a ValidationResourceError if the form has any errors" do
+      it "raises a ValidationResourceError if the form has any resource errors" do
         form = form_class.new
 
         form.define_singleton_method(:validate) do

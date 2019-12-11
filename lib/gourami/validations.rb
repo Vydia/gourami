@@ -19,7 +19,7 @@ module Gourami
       end
 
       if any_errors?
-        raise ValidationError.new(errors)
+        raise (errors.any? ? ValidationError.new(errors) : ValidationResourceError.new(resource_errors))
       end
 
       returned

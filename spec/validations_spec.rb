@@ -67,6 +67,34 @@ describe Gourami::Validations do
         error.message
       )
     end
+
+    describe "when resource error is appended" do
+      let(:form_class) do
+        Class.new.tap do |c|
+          c.send(:include, Gourami::Attributes)
+          c.send(:include, Gourami::Validations)
+          c.send(:include, Gourami::Extensions::Resources)
+          c.attribute :whatever
+        end
+      end
+
+      it "raises a ValidationResourceError if the form has any resource errors" do
+        form = form_class.new
+
+        form.define_singleton_method(:validate) do
+          form.append_resource_error(:whatever, :however, :wherever, :error_message)
+        end
+
+        error = assert_raises(Gourami::ValidationResourceError) do
+          form.perform!
+        end
+
+        assert_equal(
+          %Q(Validation failed with errors: whatever:however:wherever: [:error_message]),
+          error.message
+        )
+      end
+    end
   end
 
   describe "#attribute_has_errors?" do

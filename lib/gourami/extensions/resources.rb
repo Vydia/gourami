@@ -91,6 +91,28 @@ module Gourami
         resource_errors.values.flat_map(&:values).map(&:values).flatten.any?
       end
 
+      # Replace the existing resource errors with the provided errors Hash.
+      #
+      # @param new_resource_errors [Hash<Symbol, Hash<Symbol, Hash<Symbol, Array>>>]
+      #
+      # @return [Hash<Symbol, Hash<Symbol, Hash<Symbol, Array>>>]
+      def clear_and_set_resource_errors(new_resource_errors)
+        new_resource_errors = new_resource_errors.dup
+        resource_errors.clear
+        resource_errors.merge!(new_resource_errors)
+
+        resource_errors
+      end
+
+      def handle_validation_error(error)
+        super(error)
+        clear_and_set_resource_errors(error.resource_errors) unless error.resource_errors.nil?
+      end
+
+      def raise_validate_errors
+        raise ValidationError.new(errors, resource_errors)
+      end
+
     end
   end
 end

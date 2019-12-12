@@ -15,13 +15,14 @@ module Gourami
     # @raise [Gourami::ValidationError]
     def perform!
       if valid?
-        begin do
+        begin
           returned = perform
         rescue Gourami::ValidationError => error
           handle_validation_error(error)
           raise
         end
       end
+
       if any_errors?
         raise_validate_errors
       end

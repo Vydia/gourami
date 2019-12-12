@@ -6,7 +6,6 @@ require "gourami/configuration_error"
 require "gourami/not_watching_changes_error"
 require "gourami/required_attribute_error"
 require "gourami/validation_error"
-require "gourami/validation_resource_error"
 require "gourami/watch_changes_error"
 
 require "gourami/attributes"

@@ -78,21 +78,43 @@ describe Gourami::Validations do
         end
       end
 
-      it "raises a ValidationResourceError if the form has any resource errors" do
-        form = form_class.new
+      describe "when there is only resource error appended" do
+        it "raises a ValidationError if the form has any resource errors" do
+          form = form_class.new
 
-        form.define_singleton_method(:validate) do
-          form.append_resource_error(:whatever, :however, :wherever, :error_message)
+          form.define_singleton_method(:validate) do
+            form.append_resource_error(:whatever, :however, :wherever, :error_message)
+          end
+
+          error = assert_raises(Gourami::ValidationError) do
+            form.perform!
+          end
+
+          assert_equal(
+            %Q(Validation failed with resource errors: whatever:however:wherever: [:error_message]),
+            error.message
+          )
         end
+      end
 
-        error = assert_raises(Gourami::ValidationResourceError) do
-          form.perform!
+      describe "when both error and resource error are appended" do
+        it "raises a ValidationError if the form has any errors and resource errors" do
+          form = form_class.new
+
+          form.define_singleton_method(:validate) do
+            form.append_error(:whatever, :error_message)
+            form.append_resource_error(:whatever, :however, :wherever, :error_message)
+          end
+
+          error = assert_raises(Gourami::ValidationError) do
+            form.perform!
+          end
+
+          assert_equal(
+            %Q(Validation failed with errors: whatever: [:error_message]\nValidation failed with resource errors: whatever:however:wherever: [:error_message]),
+            error.message
+          )
         end
-
-        assert_equal(
-          %Q(Validation failed with errors: whatever:however:wherever: [:error_message]),
-          error.message
-        )
       end
     end
   end

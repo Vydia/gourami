@@ -57,6 +57,7 @@ module Gourami
     def stringify_all_errors
       messages = []
       messages << "Validation failed with errors: #{stringify_errors.join("\n")}" unless errors.nil?
+      p "test message", errors
       messages << "Validation failed with resource errors: #{stringify_resource_errors.join("\n")}" unless resource_errors.nil?
       messages.join("\n")
     end

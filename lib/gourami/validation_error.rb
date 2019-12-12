@@ -34,7 +34,7 @@ module Gourami
     # @param errors [Hash<Symbol, Array>]
     # @param resource_errors [Hash<Symbol, Hash<Symbol, Hash<Symbol, Array>>>]
     def initialize(errors, resource_errors = nil)
-      @resource_errors = errors
+      @resource_errors = resource_errors
       @errors = errors
 
       super(message)

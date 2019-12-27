@@ -2,6 +2,7 @@ module Gourami
 end
 
 require "gourami/error"
+require "gourami/attribute_name_conflict_error"
 require "gourami/configuration_error"
 require "gourami/not_watching_changes_error"
 require "gourami/required_attribute_error"

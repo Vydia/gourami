@@ -2,6 +2,7 @@ module Gourami
   module Attributes
 
     module ClassMethods
+
       # Copy parent attributes to inheriting class.
       #
       # @param klass [Class]
@@ -26,7 +27,7 @@ module Gourami
 
         mixin = Module.new do |mixin|
           unless options[:skip_reader]
-            if base.instance_methods.include?(name) && !options[:override_reader]
+            if !base.attributes.key?(name) && base.instance_methods.include?(name) && !options[:override_reader]
               raise AttributeNameConflictError, "#{name} is already a method. To use the existing method, use `:skip_reader => true` option. To override the existing method, use `:override_reader => true` option."
             end
 

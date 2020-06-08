@@ -273,7 +273,7 @@ describe Gourami::Extensions::Changes do
         end
 
         form = form_class.new(:foo => "12345")
-        assert_equal(Fixnum, new_value_class)
+        assert_equal(Integer, new_value_class)
       end
     end
   end

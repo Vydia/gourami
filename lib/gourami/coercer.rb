@@ -131,9 +131,12 @@ module Gourami
       hash_key_type = options[:key_type]
       hash_value_type = options[:value_type]
 
-      return {} unless value.is_a?(Hash) || (defined?(Sequel::Postgres::JSONHash) && value.is_a?(Sequel::Postgres::JSONHash))
+      hash_class = options[:indifferent_access] ? ActiveSupport::HashWithIndifferentAccess : Hash
+      hash = hash_class.new
 
-      value.each_with_object({}) do |(key, value), coerced_hash|
+      return hash unless value.is_a?(Hash) || (defined?(Sequel::Postgres::JSONHash) && value.is_a?(Sequel::Postgres::JSONHash))
+
+      value.each_with_object(hash) do |(key, value), coerced_hash|
         key_type = hash_key_type.respond_to?(:call) ? hash_key_type.call(key, value) : hash_key_type
         key = send("coerce_#{key_type}", key) if key_type
 

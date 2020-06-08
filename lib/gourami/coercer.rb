@@ -138,7 +138,18 @@ module Gourami
         key = send("coerce_#{key_type}", key) if key_type
 
         value_type = hash_value_type.respond_to?(:call) ? hash_value_type.call(key, value) : hash_value_type
-        value = send("coerce_#{value_type}", value) if value_type
+
+        # TODO: Refactor shared logic here and coerce_array to a method like `type, options = resolve_coercer_type_and_options`
+        if value_type.is_a?(Hash)
+          value_type_options = value_type
+          value_type = value_type[:type]
+        else
+          value_type_options = {}
+        end
+
+        value_coercer_method_name = :"coerce_#{value_type}"
+
+        value = send(value_coercer_method_name, value, value_type_options) if value_type
         coerced_hash[key] = value
       end
     end

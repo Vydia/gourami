@@ -165,10 +165,10 @@ describe Gourami::Coercer do
 
   describe "#coerce_hash" do
     describe "options" do
-      let(:coercer_options) { { :element_type => element_type } }
+      let(:coercer_options) { { :key_type => :integer, :value_type => { :type => :hash, :key_type => :string, :value_type => :string } } }
 
       let(:input) { {
-        12345 => {
+        "12345" => {
           :key => :value
         }
       } }
@@ -176,10 +176,10 @@ describe Gourami::Coercer do
       subject { coercer.coerce_hash(input, coercer_options) }
 
       describe ":allow_nil" do
-        let(:coercer_options) { { :element_type => element_type, :allow_nil => true } }
+        let(:coercer_options) { { :key_type => :string, :value_type => :string, :allow_nil => true } }
 
         it "when not provided returns empty hash" do
-          assert_equal([], coercer.coerce_hash(nil))
+          assert_equal({}, coercer.coerce_hash(nil))
         end
 
         it "when true returns nil" do
@@ -187,32 +187,17 @@ describe Gourami::Coercer do
         end
 
         it "when false converts to empty hash" do
-          assert_equal([], coercer.coerce_hash(nil, :allow_nil => false))
+          assert_equal({}, coercer.coerce_hash(nil, :allow_nil => false))
         end
       end
 
-      describe "when :element_type is a Symbol" do
-        let(:element_type) { :hash }
-
-        it "converts to a Hash but does not coerce :key_type or :value_type" do
-          expected = [{
-            :key => :value
-          }]
-          assert_equal(expected, subject)
-        end
-      end
-
-      describe "when :element_type is a Hash" do
-        let(:element_type) { {
-          :type => :hash, :key_type => :string, :value_type => :string
-        } }
-
-        it "uses the :key_type and :value_type options to each child" do
-          expected = [{
+      it "uses the :key_type and :value_type options to all key/value pairs" do
+        expected = {
+          12345 => {
             "key" => "value"
-          }]
-          assert_equal(expected, subject)
-        end
+          }
+        }
+        assert_equal(expected, subject)
       end
     end
   end

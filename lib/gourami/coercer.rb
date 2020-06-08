@@ -126,7 +126,7 @@ module Gourami
     # @return [Hash, ActiveSupport::HashWithIndifferentAccess]
     #   The coerced Hash.
     def coerce_hash(value, options = {})
-      # return if options[:allow_nil] && value.nil?
+      return if options[:allow_nil] && value.nil?
 
       hash_key_type = options[:key_type]
       hash_value_type = options[:value_type]

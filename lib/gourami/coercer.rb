@@ -120,8 +120,10 @@ module Gourami
     #   The type of the hash keys to coerce, no coersion if value is nil.
     # @option options :value_type [Symbol, Callable] (nil)
     #   The type of the hash values to coerce, no coersion if value is nil.
+    # @option options :indifferent_access [Boolean] (false)
+    #   When true, the resulting Hash will be an ActiveSupport::HashWithIndifferentAccess
     #
-    # @return [Hash]
+    # @return [Hash, ActiveSupport::HashWithIndifferentAccess]
     #   The coerced Hash.
     def coerce_hash(value, options = {})
       # return if options[:allow_nil] && value.nil?

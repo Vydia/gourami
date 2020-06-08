@@ -15,11 +15,16 @@ module Gourami
     # @raise [Gourami::ValidationError]
     def perform!
       if valid?
-        returned = perform
+        begin
+          returned = perform
+        rescue Gourami::ValidationError => error
+          handle_validation_error(error)
+          raise
+        end
       end
 
       if any_errors?
-        raise ValidationError.new(errors)
+        raise_validate_errors
       end
 
       returned
@@ -46,15 +51,23 @@ module Gourami
 
     # Replace the existing errors with the provided errors Hash.
     #
-    # @param new_errors [Hash<Symbol, nil>, Array<Symbol, String>]
+    # @param new_errors Hash<Symbol, Array>
     #
-    # @return [Hash<Symbol, nil>, Array<Symbol, String>]
+    # @return Hash<Symbol, Array>
     def clear_and_set_errors(new_errors)
       new_errors = new_errors.dup
       errors.clear
       errors.merge!(new_errors)
 
       errors
+    end
+
+    def raise_validate_errors
+      raise ValidationError.new(errors)
+    end
+
+    def handle_validation_error(error)
+      clear_and_set_errors(error.errors) unless error.errors.nil?
     end
 
     # Return true if there given attribute has any errors.

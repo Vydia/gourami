@@ -11,8 +11,7 @@ module Gourami
     # @return [*]
     def setter_filter(attribute_name, value, options)
       type = options[:type]
-      coercer_method_name = :"coerce_#{type}"
-      value = send(coercer_method_name, value, options) if type
+      value = send(:"coerce_#{type}", value, options) if type
 
       super(attribute_name, value, options)
     end
@@ -138,7 +137,7 @@ module Gourami
 
       value.each_with_object(hash) do |(key, value), coerced_hash|
         key_type = hash_key_type.respond_to?(:call) ? hash_key_type.call(key, value) : hash_key_type
-        key = send("coerce_#{key_type}", key) if key_type
+        key = send(:"coerce_#{key_type}", key) if key_type
 
         value_type = hash_value_type.respond_to?(:call) ? hash_value_type.call(key, value) : hash_value_type
 
@@ -150,9 +149,8 @@ module Gourami
           value_type_options = {}
         end
 
-        value_coercer_method_name = :"coerce_#{value_type}"
+        value = send(:"coerce_#{value_type}", value, value_type_options) if value_type
 
-        value = send(value_coercer_method_name, value, value_type_options) if value_type
         coerced_hash[key] = value
       end
     end

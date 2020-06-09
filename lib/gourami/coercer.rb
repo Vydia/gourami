@@ -11,8 +11,7 @@ module Gourami
     # @return [*]
     def setter_filter(attribute_name, value, options)
       type = options[:type]
-      coercer_method_name = :"coerce_#{type}"
-      value = send(coercer_method_name, value, options) if type
+      value = send(:"coerce_#{type}", value, options) if type
 
       super(attribute_name, value, options)
     end
@@ -120,21 +119,38 @@ module Gourami
     #   The type of the hash keys to coerce, no coersion if value is nil.
     # @option options :value_type [Symbol, Callable] (nil)
     #   The type of the hash values to coerce, no coersion if value is nil.
+    # @option options :indifferent_access [Boolean] (false)
+    #   When true, the resulting Hash will be an ActiveSupport::HashWithIndifferentAccess
     #
-    # @return [Hash]
+    # @return [Hash, ActiveSupport::HashWithIndifferentAccess]
     #   The coerced Hash.
     def coerce_hash(value, options = {})
+      return if options[:allow_nil] && value.nil?
+
       hash_key_type = options[:key_type]
       hash_value_type = options[:value_type]
 
-      return {} unless value.is_a?(Hash) || (defined?(Sequel::Postgres::JSONHash) && value.is_a?(Sequel::Postgres::JSONHash))
+      hash_class = options[:indifferent_access] ? ActiveSupport::HashWithIndifferentAccess : Hash
+      hash = hash_class.new
 
-      value.each_with_object({}) do |(key, value), coerced_hash|
+      return hash unless value.is_a?(Hash) || (defined?(Sequel::Postgres::JSONHash) && value.is_a?(Sequel::Postgres::JSONHash))
+
+      value.each_with_object(hash) do |(key, value), coerced_hash|
         key_type = hash_key_type.respond_to?(:call) ? hash_key_type.call(key, value) : hash_key_type
-        key = send("coerce_#{key_type}", key) if key_type
+        key = send(:"coerce_#{key_type}", key) if key_type
 
         value_type = hash_value_type.respond_to?(:call) ? hash_value_type.call(key, value) : hash_value_type
-        value = send("coerce_#{value_type}", value) if value_type
+
+        # TODO: Refactor shared logic here and coerce_array to a method like `type, options = resolve_coercer_type_and_options`
+        if value_type.is_a?(Hash)
+          value_type_options = value_type
+          value_type = value_type[:type]
+        else
+          value_type_options = {}
+        end
+
+        value = send(:"coerce_#{value_type}", value, value_type_options) if value_type
+
         coerced_hash[key] = value
       end
     end

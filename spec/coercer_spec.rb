@@ -162,4 +162,101 @@ describe Gourami::Coercer do
       end
     end
   end
+
+  describe "#coerce_hash" do
+    describe "options" do
+      let(:coercer_options) { { :key_type => :integer, :value_type => { :type => :hash, :key_type => :string, :value_type => :string } } }
+
+      let(:input) { {
+        "12345" => {
+          :key => :value
+        }
+      } }
+
+      subject { coercer.coerce_hash(input, coercer_options) }
+
+      it "uses the :key_type and :value_type options to all key/value pairs" do
+        expected = {
+          12345 => {
+            "key" => "value"
+          }
+        }
+        assert_equal(expected, subject)
+      end
+
+      describe ":allow_nil" do
+        it "when not provided returns empty hash" do
+          assert_equal({}, coercer.coerce_hash(nil))
+        end
+
+        it "when true returns nil" do
+          assert_nil(coercer.coerce_hash(nil, :allow_nil => true))
+        end
+
+        it "when false converts to empty hash" do
+          assert_equal({}, coercer.coerce_hash(nil, :allow_nil => false))
+        end
+      end
+
+      describe ":indifferent_access" do
+        def assert_has_indifferent_keys(hash, key)
+          refute(hash.key?(key.to_i), "Expected the HashWithIndifferentAccess not to have Integer key: #{key.to_i.inspect}")
+          assert(hash.key?(key.to_s), "Expected the HashWithIndifferentAccess to have String key: #{key.inspect}")
+          assert(hash.key?(key.to_sym), "Expected the HashWithIndifferentAccess to have Symbol key: #{key.to_sym.inspect}")
+        end
+
+        def assert_has_strict_key(hash, key)
+          assert(hash.key?(key), "Expected the Hash to have strict key: #{key.inspect}")
+        end
+
+        before do
+          require "active_support/core_ext/hash"
+          require "active_support/hash_with_indifferent_access"
+        end
+
+        it "when omitted returns Hash" do
+          result = coercer.coerce_hash(input)
+          assert_kind_of(Hash, result)
+          refute_kind_of(ActiveSupport::HashWithIndifferentAccess, result)
+          assert_equal(input, result)
+          assert_has_strict_key(result, "12345")
+        end
+
+        it "when false returns Hash" do
+          result = coercer.coerce_hash(input, :indifferent_access => false)
+          assert_kind_of(Hash, result)
+          refute_kind_of(ActiveSupport::HashWithIndifferentAccess, result)
+          assert_equal(input, result)
+          assert_has_strict_key(result, "12345")
+        end
+
+        it "when true returns ActiveSupport::HashWithIndifferentAccess instead of Hash" do
+          result = coercer.coerce_hash(input, :indifferent_access => true)
+          assert_kind_of(Hash, result)
+          assert_kind_of(ActiveSupport::HashWithIndifferentAccess, result)
+          assert_equal({
+            "12345" => {
+              "key" => :value
+            }
+          }, result)
+          assert_has_indifferent_keys(result, "12345")
+        end
+
+        it "when provided as nested value_type option" do
+          result = coercer.coerce_hash(input, :value_type => { :type => :hash, :indifferent_access => true })
+          assert_kind_of(Hash, result)
+          refute_kind_of(ActiveSupport::HashWithIndifferentAccess, result)
+          assert_equal({
+            "12345" => {
+              "key" => :value
+            }
+          }, result)
+          assert_has_strict_key(result, "12345")
+          assert_kind_of(Hash, result.fetch("12345"))
+          assert_kind_of(ActiveSupport::HashWithIndifferentAccess, result.fetch("12345"))
+          assert_has_indifferent_keys(result.fetch("12345"), "key")
+        end
+      end
+    end
+  end
 end

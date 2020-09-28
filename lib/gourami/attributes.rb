@@ -9,6 +9,7 @@ module Gourami
       def inherited(klass)
         super(klass)
         klass.instance_variable_set(:@attributes, attributes.dup)
+        klass.instance_variable_set(:@default_attribute_options, default_attribute_options.dup)
       end
 
       # Define an attribute for the form.
@@ -23,6 +24,8 @@ module Gourami
       def attribute(name, options = {}, &default_block)
         base = self
         options = options.dup
+        options = merge_default_attribute_options(options[:type], options) if options[:type]
+
         options[:default] = default_block if block_given?
 
         mixin = Module.new do |mixin|
@@ -89,6 +92,20 @@ module Gourami
       #   The class attributes hash.
       def attributes
         @attributes ||= {}
+      end
+
+      # Useful if you want, for example, all type: :string attributes to use
+      # strip: true to remove whitespace padding.
+      def set_default_attribute_options(attr_type, options)
+        default_attribute_options[attr_type] = options
+      end
+
+      def default_attribute_options
+        @default_attribute_options ||= {}
+      end
+
+      def merge_default_attribute_options(attr_type, opts)
+        default_attribute_options.fetch(attr_type, {}).merge(opts)
       end
     end
 

@@ -7,6 +7,28 @@ describe Gourami::Attributes do
     end
   end
 
+  describe ".set_default_attribute_options" do
+    it "merges attributes options into default_attribute_options upon attribute definition" do
+      form_class.set_default_attribute_options(:string, :some_default_option => :foo, :another_option => :foo)
+      form_class.attribute(:provide_me, :type => :string, :another_option => :bar)
+      assert_equal(:foo, form_class.attributes.fetch(:provide_me).fetch(:some_default_option), "the default should be used when no option provided upon attribute definition")
+      assert_equal(:bar, form_class.attributes.fetch(:provide_me).fetch(:another_option), "the default should not take precedence when another value is provided upon attribute definition")
+    end
+
+    describe "inheritance" do
+      let(:form_subclass) do
+        form_class.set_default_attribute_options(:string, :some_default_option => :foo, :another_option => :foo)
+        Class.new(form_class)
+      end
+
+      it "subclasses retain default_attribute_options" do
+        form_subclass.attribute(:provide_me, :type => :string, :another_option => :bar)
+        assert_equal(:foo, form_subclass.attributes.fetch(:provide_me).fetch(:some_default_option), "the default should be used when no option provided upon attribute definition")
+        assert_equal(:bar, form_subclass.attributes.fetch(:provide_me).fetch(:another_option), "the default should not take precedence when another value is provided upon attribute definition")
+      end
+    end
+  end
+
   describe "#provided_attributes" do
     it "returns a hash" do
       assert_kind_of(Hash, form_class.new.provided_attributes)

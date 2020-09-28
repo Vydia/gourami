@@ -11,8 +11,10 @@ describe Gourami::Attributes do
     it "merges attributes options into default_attribute_options upon attribute definition" do
       form_class.set_default_attribute_options(:string, :some_default_option => :foo, :another_option => :foo)
       form_class.attribute(:provide_me, :type => :string, :another_option => :bar)
-      assert_equal(:foo, form_class.attributes.fetch(:provide_me).fetch(:some_default_option), "the default should be used when no option provided upon attribute definition")
-      assert_equal(:bar, form_class.attributes.fetch(:provide_me).fetch(:another_option), "the default should not take precedence when another value is provided upon attribute definition")
+      options_with_defaults = form_class.merge_default_attribute_options(form_class.attributes.fetch(:provide_me))
+
+      assert_equal(:foo, options_with_defaults.fetch(:some_default_option), "the default should be used when no option provided upon attribute definition")
+      assert_equal(:bar, options_with_defaults.fetch(:another_option), "the default should not take precedence when another value is provided upon attribute definition")
     end
 
     describe "inheritance" do
@@ -23,8 +25,35 @@ describe Gourami::Attributes do
 
       it "subclasses retain default_attribute_options" do
         form_subclass.attribute(:provide_me, :type => :string, :another_option => :bar)
-        assert_equal(:foo, form_subclass.attributes.fetch(:provide_me).fetch(:some_default_option), "the default should be used when no option provided upon attribute definition")
-        assert_equal(:bar, form_subclass.attributes.fetch(:provide_me).fetch(:another_option), "the default should not take precedence when another value is provided upon attribute definition")
+        options_with_defaults = form_subclass.merge_default_attribute_options(form_subclass.attributes.fetch(:provide_me))
+
+        assert_equal(:foo, options_with_defaults.fetch(:some_default_option), "the default should be used when no option provided upon attribute definition")
+        assert_equal(:bar, options_with_defaults.fetch(:another_option), "the default should not take precedence when another value is provided upon attribute definition")
+      end
+    end
+
+    describe "subtypes like element_type, key_type, and value_type all receive the default_attribute_options too" do
+      before do
+        form_class.include(Gourami::Coercer)
+        form_class.set_default_attribute_options(:string, :upcase => :true)
+      end
+
+      it "string coercer receives the options" do
+        form_class.attribute(:my_string, :type => :string)
+        form = form_class.new(:my_string => "foo")
+        assert_equal("FOO", form.my_string)
+      end
+
+      it "array element coercer receives the options" do
+        form_class.attribute(:my_array, :type => :array, :element_type => :string)
+        form = form_class.new(:my_array => ["bar"])
+        assert_equal(["BAR"], form.my_array)
+      end
+
+      it "hash value coercer receives the options" do
+        form_class.attribute(:my_hash, :type => :hash, :value_type => :string)
+        form = form_class.new(:my_hash => { "foo" => "bar" })
+        assert_equal({ "foo" => "BAR" }, form.my_hash)
       end
     end
   end

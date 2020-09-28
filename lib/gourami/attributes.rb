@@ -24,19 +24,19 @@ module Gourami
       def attribute(name, options = {}, &default_block)
         base = self
         options = options.dup
-        options = merge_default_attribute_options(options[:type], options) if options[:type]
-
         options[:default] = default_block if block_given?
 
+        options_with_defaults = merge_default_attribute_options(options)
+
         mixin = Module.new do |mixin|
-          unless options[:skip_reader]
-            if !base.attributes.key?(name) && base.instance_methods.include?(name) && !options[:override_reader]
+          unless options_with_defaults[:skip_reader]
+            if !base.attributes.key?(name) && base.instance_methods.include?(name) && !options_with_defaults[:override_reader]
               raise AttributeNameConflictError, "#{name} is already a method. To use the existing method, use `:skip_reader => true` option. To override the existing method, use `:override_reader => true` option."
             end
 
             mixin.send(:define_method, :"#{name}") do
               value = instance_variable_get(:"@#{name}")
-              default = options[:default]
+              default = options_with_defaults[:default]
 
               if value.nil? && default
                 default.respond_to?(:call) ? instance_exec(&default) : default
@@ -54,7 +54,7 @@ module Gourami
 
           # Define internal setter.
           mixin.send(:define_method, :"_#{name}=") do |value|
-            instance_variable_set(:"@#{name}", setter_filter(name, value, options))
+            instance_variable_set(:"@#{name}", setter_filter(name, value, self.class.merge_default_attribute_options(options)))
           end
           mixin.send(:private, :"_#{name}=")
 
@@ -104,8 +104,12 @@ module Gourami
         @default_attribute_options ||= {}
       end
 
-      def merge_default_attribute_options(attr_type, opts)
-        default_attribute_options.fetch(attr_type, {}).merge(opts)
+      def merge_default_attribute_options(options)
+        if options[:type]
+          default_attribute_options.fetch(options[:type], {}).merge(options)
+        else
+          options
+        end
       end
     end
 

@@ -33,6 +33,9 @@ module Gourami
       end
 
       value = value.to_s.dup.force_encoding(Encoding::UTF_8)
+
+      # TODO: Instead of providing unconfigurable defaults like this, use
+      # set_default_attribute_options at the gem level or consumer level.
       value.strip! if options.fetch(:strip, true)
       value.upcase! if options.fetch(:upcase, false)
 
@@ -83,6 +86,9 @@ module Gourami
       else
         element_type_options = {}
       end
+
+      element_type_options[:type] = element_type
+      element_type_options = self.class.merge_default_attribute_options(element_type_options) if self.class.respond_to?(:merge_default_attribute_options)
 
       coercer_method_name = :"coerce_#{element_type}"
 
@@ -148,6 +154,9 @@ module Gourami
         else
           value_type_options = {}
         end
+
+        value_type_options[:type] = value_type
+        value_type_options = self.class.merge_default_attribute_options(value_type_options) if self.class.respond_to?(:merge_default_attribute_options)
 
         value = send(:"coerce_#{value_type}", value, value_type_options) if value_type
 

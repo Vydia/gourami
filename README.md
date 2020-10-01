@@ -1,5 +1,7 @@
 # Gourami
 
+[![Codeship Status for Vydia/gourami](https://app.codeship.com/projects/316bc070-f431-0136-4713-52c1ec7c066f/status?branch=master)](https://app.codeship.com/projects/320673)
+
 Keep your Routes, Controllers and Models thin with Plain Old Ruby Objects (PORO).
 
 ## Installation
@@ -12,7 +14,7 @@ gem 'gourami'
 
 And then execute:
 
-    $ bundle
+    $ bundle install
 
 Or install it yourself as:
 
@@ -20,10 +22,10 @@ Or install it yourself as:
 
 ## Usage
 
-### A Typical Gourami::Form will
+### A Typical `Gourami::Form` will
 
- - Define some attributes
- - Validate user input
+ - Define attributes (inputs & outputs)
+ - Validate input
  - Perform an action
 
 ```ruby
@@ -173,6 +175,56 @@ class UpdateFishBowl < CreateFishBowl
 end
 ```
 
+#### Configure default attribute options
+
+The following examples will result in all `:string` attributes getting the options `:strip` and `:upcase` set to `true`.
+
+Set global defaults:
+
+```ruby
+Gourami::Form.set_default_attribute_options(:string, upcase: true)
+
+# Make sure to define CreateFishBowl and other forms AFTER setting default options.
+class CreateFishBowl < Gourami::Form
+  attribute(:name, type: :string)
+end
+
+form = CreateFishBowl.new(name: "Snake Gyllenhaal")
+form.name # => "SNAKE GYLLENHAAL"
+```
+
+Instead of global defaults, you can also apply defaults to certain form classes.
+
+Just as `attributes` are inherited by subclasses, so are `default_attribute_options`.
+
+Set local defaults:
+
+```ruby
+class ScreamingForm < Gourami::Form
+  set_default_attribute_options(:string, upcase: true)
+end
+
+class CreateScreamingFish < ScreamingForm
+  attribute(:name, type: :string)
+end
+
+class UpdateScreamingFish < CreateScreamingFish; end
+
+create_form = CreateScreamingFish.new(name: "Snake Gyllenhaal")
+create_form.name # => "SNAKE GYLLENHAAL"
+
+update_form = UpdateScreamingFish.new(name: "Snake Gyllenhaal")
+update_form.name # => "SNAKE GYLLENHAAL"
+
+# Other Gourami::Forms are unaffected
+class RegularForm < Gourami::Form
+  attribute(:name, type: :string)
+end
+
+regular_form = RegularForm.new(name: "Snake Gyllenhaal")
+regular_form.name # => "Snake Gyllenhaal"
+```
+
 #### Extensions / Plugins
 
 ##### Gourami::Extensions::Changes
@@ -250,7 +302,7 @@ end
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests, or `rake test:watch` to automatically rerun the tests when you make code changes. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
 To install this gem onto your local machine, run `bundle exec rake install`.
 

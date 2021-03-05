@@ -1,6 +1,6 @@
 # Gourami
 
-[![Codeship Status for Vydia/gourami](https://app.codeship.com/projects/316bc070-f431-0136-4713-52c1ec7c066f/status?branch=master)](https://app.codeship.com/projects/320673)
+![Github Actions CI](https://github.com/Vydia/gourami/workflows/ci/badge.svg)
 
 Keep your Routes, Controllers and Models thin with Plain Old Ruby Objects (PORO).
 

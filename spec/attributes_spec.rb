@@ -185,4 +185,23 @@ describe Gourami::Attributes do
       end
     end
   end
+
+  describe ".record" do
+    it "forwards all arguments and block to .attribute and adds `skip: true` and `record: true`" do
+      form_class.record(:my_record, :type => :string) do
+        "block default value"
+      end
+
+      actual_options = form_class.attributes[:my_record].dup
+      actual_default = actual_options.delete(:default)
+
+      assert_equal({
+        :type => :string,
+        :skip => true,
+        :record => true,
+      }, actual_options)
+
+      assert_equal("block default value", actual_default.call)
+    end
+  end
 end

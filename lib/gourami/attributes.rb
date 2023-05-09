@@ -79,11 +79,11 @@ module Gourami
       # @option options [Class]
       #   The Class of the type of this attribute. Can be any of String, Integer,
       #   Float, Array, Hash or :boolean.
-      def record(name, options = {})
+      def record(name, options = {}, &block)
         define_method(:record) do
           send(name)
         end
-        attribute(name, options.merge(:skip => true, :record => true))
+        attribute(name, options.merge(:skip => true, :record => true), &block)
       end
 
       # Retrieve the list of attributes of the form.

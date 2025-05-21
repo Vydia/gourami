@@ -2,11 +2,34 @@ module Gourami
   module Extensions
     module Resources
 
+      # yield to the given block for each resource in the given namespace.
+      #
+      # @param resource_namespace [Symbol] The namespace of the resource (e.g. :users, :payments)
+      #
+      # @option offset [Integer] The offset of the resource (e.g. 0, 1, 2) for example in an update form, there may be existing items that already exist, however only the new items are sent to the form.
+      #
+      # @yield The block to execute, each time with a resource active.
+      #
+      # @example
+      #   def validate
+      #     with_each_resource(:social_broadcasts) do
+      #       validate_presence(:title) # validates `attributes[:social_broadcasts][<EACH>][:title]`
+      #     end
+      #   end
+      def with_each_resource(resource_namespace, offset: 0, &_block)
+        send(resource_namespace).each_with_index do |resource, resource_uid|
+          with_resource(resource_namespace, resource_uid, offset: offset) do
+            yield(resource, resource_uid)
+          end
+        end
+      end
+
       # For the duration of the given block, all validations will be done on the given resource.
       #
       # @param resource_namespace [Symbol] The namespace of the resource (e.g. :users, :payments)
       # @param resource_uid [String|Number] The uid of the resource (e.g. 0, 1, "123")
-      # @param offset [Integer] The offset of the resource (e.g. 0, 1, 2) for example in an update form, there may be existing items that already exist, however only the new items are sent to the form.
+      #
+      # @option offset [Integer] The offset of the resource (e.g. 0, 1, 2) for example in an update form, there may be existing items that already exist, however only the new items are sent to the form.
       #
       # @yield The block to execute with the resource active.
       #

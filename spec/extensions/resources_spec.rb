@@ -55,7 +55,7 @@ describe Gourami::Extensions::Resources do
     end
   end
 
-  describe "#with_resource" do
+  describe "#with_resource(:items, index)" do
     it "validations within the block are scoped to the resource" do
       form = form_class.new(
         items: [
@@ -73,23 +73,61 @@ describe Gourami::Extensions::Resources do
           },
         ],
       )
+      offset = 3
       form.items.each_with_index do |item, index|
-        form.with_resource(:items, index) do
+        form.with_resource(:items, index, offset: offset) do
           form.validate_presence(:name)
           form.append_error(:id, :is_invalid) if item["id"] > 500
         end
       end
-      assert_equal(false, form.resource_has_errors?(:items, 0))
-      assert_equal(false, form.resource_has_errors?(:items, 1))
-      assert_equal(true, form.resource_has_errors?(:items, 2))
+      assert_equal(false, form.resource_has_errors?(:items, offset + 0))
+      assert_equal(false, form.resource_has_errors?(:items, offset + 1))
+      assert_equal(true, form.resource_has_errors?(:items, offset + 2))
 
-      assert_equal(false, form.resource_attribute_has_errors?(:items, 0, :name))
-      assert_equal(false, form.resource_attribute_has_errors?(:items, 0, :id))
-      assert_equal(false, form.resource_attribute_has_errors?(:items, 1, :name))
+      assert_equal(false, form.resource_attribute_has_errors?(:items, offset + 0, :name))
+      assert_equal(false, form.resource_attribute_has_errors?(:items, offset + 0, :id))
+      assert_equal(false, form.resource_attribute_has_errors?(:items, offset + 1, :name))
 
-      assert_equal(false, form.resource_attribute_has_errors?(:items, 1, :id))
-      assert_equal(true, form.resource_attribute_has_errors?(:items, 2, :name))
-      assert_equal(true, form.resource_attribute_has_errors?(:items, 2, :id))
+      assert_equal(false, form.resource_attribute_has_errors?(:items, offset + 1, :id))
+      assert_equal(true, form.resource_attribute_has_errors?(:items, offset + 2, :name))
+      assert_equal(true, form.resource_attribute_has_errors?(:items, offset + 2, :id))
+    end
+  end
+
+  describe "#with_each_resource(:items) do |item, index|" do
+    it "validations within the block are scoped to the resource" do
+      form = form_class.new(
+        items: [
+          {
+            name: "Sean",
+            id: 123,
+          },
+          {
+            name: "Leigh",
+            id: 456,
+          },
+          {
+            name: "",
+            id: 789,
+          },
+        ],
+      )
+      offset = 3
+      form.with_each_resource(:items, offset: offset) do |item, index|
+        form.validate_presence(:name)
+        form.append_error(:id, :is_invalid) if item["id"] > 500
+      end
+      assert_equal(false, form.resource_has_errors?(:items, offset + 0))
+      assert_equal(false, form.resource_has_errors?(:items, offset + 1))
+      assert_equal(true, form.resource_has_errors?(:items, offset + 2))
+
+      assert_equal(false, form.resource_attribute_has_errors?(:items, offset + 0, :name))
+      assert_equal(false, form.resource_attribute_has_errors?(:items, offset + 0, :id))
+      assert_equal(false, form.resource_attribute_has_errors?(:items, offset + 1, :name))
+
+      assert_equal(false, form.resource_attribute_has_errors?(:items, offset + 1, :id))
+      assert_equal(true, form.resource_attribute_has_errors?(:items, offset + 2, :name))
+      assert_equal(true, form.resource_attribute_has_errors?(:items, offset + 2, :id))
     end
   end
 end

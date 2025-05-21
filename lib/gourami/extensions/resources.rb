@@ -26,9 +26,9 @@ module Gourami
           end
         end
 
-        send(resource_namespace).each_with_index do |resource, resource_uid|
-          with_resource(resource_namespace, resource_uid, offset: offset) do
-            yield(resource, resource_uid)
+        send(resource_namespace).each_with_index do |resource, index|
+          with_resource(resource_namespace, index, offset: offset) do
+            yield(resource, offset ? index + offset : index, index)
           end
         end
       end

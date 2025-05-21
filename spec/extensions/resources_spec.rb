@@ -140,10 +140,53 @@ describe Gourami::Extensions::Resources do
         ],
       )
       offset = 3
-      form.with_each_resource(:items, offset: offset) do |item, index|
+
+      received_items = []
+      received_keys = []
+      received_indexes = []
+      form.with_each_resource(:items, offset: offset) do |item, key, index|
+        received_items << item
+        received_keys << key
+        received_indexes << index
+
         form.validate_presence(:name)
         form.append_error(:id, :is_invalid) if item["id"] > 500
       end
+
+      assert_equal(
+        [
+          {
+            "name" => "Sean",
+            "id" => 123,
+          },
+          {
+            "name" => "Leigh",
+            "id" => 456,
+          },
+          {
+            "name" => "",
+            "id" => 789,
+          },
+        ],
+        received_items
+      )
+      assert_equal(
+        [
+          offset + 0,
+          offset + 1,
+          offset + 2,
+        ],
+        received_keys
+      )
+
+      assert_equal(
+        [
+          0,
+          1,
+          2,
+        ],
+        received_indexes
+      )
 
       assert_equal(false, form.resource_has_errors?(:items, offset + 0))
       assert_equal(false, form.resource_has_errors?(:items, offset + 1))
@@ -216,10 +259,53 @@ describe Gourami::Extensions::Resources do
           },
         }
       )
-      form.with_each_resource(:items_hash) do |item, index|
+
+      received_items = []
+      received_keys = []
+      received_indexes = []
+      form.with_each_resource(:items_hash) do |item, key, index|
+        received_items << item
+        received_keys << key
+        received_indexes << index
+
         form.validate_presence(:name)
         form.append_error(:id, :is_invalid) if item["id"] > 500
       end
+
+      assert_equal(
+        [
+          {
+            "name" => "Sean",
+            "id" => 123,
+          },
+          {
+            "name" => "Leigh",
+            "id" => 456,
+          },
+          {
+            "name" => "",
+            "id" => 789,
+          },
+        ],
+        received_items
+      )
+      assert_equal(
+        [
+          "abc",
+          "def",
+          "ghi",
+        ],
+        received_keys
+      )
+
+      assert_equal(
+        [
+          0,
+          1,
+          2,
+        ],
+        received_indexes
+      )
 
       assert_equal(false, form.resource_has_errors?(:items_hash, "abc"))
       assert_equal(false, form.resource_has_errors?(:items_hash, "def"))

@@ -76,16 +76,20 @@ describe Gourami::Extensions::Resources do
       form.items.each_with_index do |item, index|
         form.with_resource(:items, index) do
           form.validate_presence(:name)
-          # TODO: support `append_error` on resource.
-          # form.append_error(:name, :is_invalid)
+          form.append_error(:id, :is_invalid) if item["id"] > 500
         end
       end
       assert_equal(false, form.resource_has_errors?(:items, 0))
       assert_equal(false, form.resource_has_errors?(:items, 1))
       assert_equal(true, form.resource_has_errors?(:items, 2))
+
       assert_equal(false, form.resource_attribute_has_errors?(:items, 0, :name))
+      assert_equal(false, form.resource_attribute_has_errors?(:items, 0, :id))
       assert_equal(false, form.resource_attribute_has_errors?(:items, 1, :name))
+
+      assert_equal(false, form.resource_attribute_has_errors?(:items, 1, :id))
       assert_equal(true, form.resource_attribute_has_errors?(:items, 2, :name))
+      assert_equal(true, form.resource_attribute_has_errors?(:items, 2, :id))
     end
   end
 end

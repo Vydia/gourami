@@ -44,7 +44,7 @@ module Gourami
 
       # If a resource namespace is active (within with_resource block), append the error to the resource.
       # Otherwise, append the error to the form object.
-      def append_maybe_resource_error(attribute_name, message)
+      def append_error(attribute_name, message)
         if @resource_namespace
           append_resource_error(@resource_namespace, @resource_uid + @offset, attribute_name, message)
         else

@@ -85,7 +85,7 @@ module Gourami
     # @param attribute_name [Symbol, nil] nil for base
     # @param error [Symbol, String]
     #   The error identifier.
-    def append_error(attribute_name, error)
+    def append_root_error(attribute_name, error)
       errors[attribute_name] << error
     end
 
@@ -98,8 +98,8 @@ module Gourami
     end
 
     # Overridden and super invoked from Extensions::Resources
-    def append_maybe_resource_error(attribute_name, message)
-      append_error(attribute_name, message)
+    def append_error(attribute_name, message)
+      append_root_error(attribute_name, message)
     end
 
     def get_current_resource_attribute_value(attribute_name)
@@ -125,7 +125,7 @@ module Gourami
     def validate_presence(attribute_name, message = nil)
       value = get_current_resource_attribute_value(attribute_name)
       if !value || value.to_s.strip.empty?
-        append_maybe_resource_error(attribute_name, message || :cant_be_empty)
+        append_error(attribute_name, message || :cant_be_empty)
       end
     end
 
@@ -140,7 +140,7 @@ module Gourami
     def validate_uniqueness(attribute_name, message = nil, &block)
       value = get_current_resource_attribute_value(attribute_name)
       unless block.call(value)
-        append_maybe_resource_error(attribute_name, message || :is_duplicated)
+        append_error(attribute_name, message || :is_duplicated)
       end
     end
 
@@ -168,7 +168,7 @@ module Gourami
     def validate_format(attribute_name, format, message = nil)
       value = get_current_resource_attribute_value(attribute_name)
       if value && !(format =~ value)
-        append_maybe_resource_error(attribute_name, message || :is_invalid)
+        append_error(attribute_name, message || :is_invalid)
       end
     end
 
@@ -196,11 +196,11 @@ module Gourami
 
         if min && length < min
           did_append_error = true
-          append_maybe_resource_error(attribute_name, options.fetch(:min_message, nil) || :is_too_short)
+          append_error(attribute_name, options.fetch(:min_message, nil) || :is_too_short)
         end
         if max && length > max
           did_append_error = true
-          append_maybe_resource_error(attribute_name, options.fetch(:max_message, nil) || :is_too_long)
+          append_error(attribute_name, options.fetch(:max_message, nil) || :is_too_long)
         end
 
         errors[attribute_name] if did_append_error
@@ -216,7 +216,7 @@ module Gourami
     def validate_inclusion(attribute_name, list, message = nil)
       value = get_current_resource_attribute_value(attribute_name)
       if value && !list.include?(value)
-        append_maybe_resource_error(attribute_name, message || :isnt_listed)
+        append_error(attribute_name, message || :isnt_listed)
       end
     end
 
@@ -226,7 +226,7 @@ module Gourami
       value = get_current_resource_attribute_value(attribute_name)
       value && value.each do |obj|
         unless list.include?(obj)
-          append_maybe_resource_error(attribute_name, message || "#{obj} isn't listed")
+          append_error(attribute_name, message || "#{obj} isn't listed")
           break
         end
       end
@@ -239,7 +239,7 @@ module Gourami
     def validate_any(attribute_name, message = nil)
       value = get_current_resource_attribute_value(attribute_name)
       if value && value.empty?
-        append_maybe_resource_error(attribute_name, message || :cant_be_empty)
+        append_error(attribute_name, message || :cant_be_empty)
       end
     end
 
@@ -251,7 +251,7 @@ module Gourami
     def validate_filetype(attribute_name, filetypes, message = nil)
       value = get_current_resource_attribute_value(attribute_name)
       if value && !filetypes.include?(value[:type].to_s.split("/").first)
-        append_maybe_resource_error(attribute_name, message || :is_invalid)
+        append_error(attribute_name, message || :is_invalid)
       end
     end
 
@@ -272,8 +272,8 @@ module Gourami
 
       min = options.fetch(:min, nil)
       max = options.fetch(:max, nil)
-      append_maybe_resource_error(attribute_name, options.fetch(:min_message, nil) || :less_than_min) if min && value < min
-      append_maybe_resource_error(attribute_name, options.fetch(:max_message, nil) || :greater_than_max) if max && value > max
+      append_error(attribute_name, options.fetch(:min_message, nil) || :less_than_min) if min && value < min
+      append_error(attribute_name, options.fetch(:max_message, nil) || :greater_than_max) if max && value > max
     end
 
     # Ensure the provided numeric attribute has the correct number of decimal places within the given range.
@@ -298,11 +298,11 @@ module Gourami
       decimal_places = value.split(".", 2).last&.length || 0
 
       if max && max > 0 && decimal_places > max
-        append_maybe_resource_error(attribute_name, max_message || :too_many_decimal_places)
+        append_error(attribute_name, max_message || :too_many_decimal_places)
       end
 
       if min && min > 0 && decimal_places < min
-        append_maybe_resource_error(attribute_name, min_message || :too_few_decimal_places)
+        append_error(attribute_name, min_message || :too_few_decimal_places)
       end
     end
 

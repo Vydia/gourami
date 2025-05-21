@@ -2,6 +2,56 @@ module Gourami
   module Extensions
     module Resources
 
+      # For the duration of the given block, all validations will be done on the given resource.
+      #
+      # @param resource_namespace [Symbol] The namespace of the resource (e.g. :users, :payments)
+      # @param resource_uid [String|Number] The uid of the resource (e.g. 0, 1, "123")
+      # @param offset [Integer] The offset of the resource (e.g. 0, 1, 2) for example in an update form, there may be existing items that already exist, however only the new items are sent to the form.
+      #
+      # @yield The block to execute with the resource active.
+      #
+      # @example
+      #   def validate
+      #     validate_presence(:title) # validates `attributes[:title]` of the form
+      #
+      #     with_resource(:social_broadcasts, "facebook_page-41") do
+      #       # Within this block all validations will be done on the resource.
+      #       validate_presence(:title)           # validates `attributes[:social_broadcasts]["facebook_page-41"][:title]`
+      #       validate_presence(:trim_start_time) # validates `attributes[:social_broadcasts]["facebook_page-41"][:trim_start_time]`
+      #       validate_presence(:trim_end_time)   # validates `attributes[:social_broadcasts]["facebook_page-41"][:trim_end_time]`
+      #     end
+      #   end
+      def with_resource(resource_namespace, resource_uid, offset: 0, &_block)
+        @resource_namespace = resource_namespace
+        @resource_uid = resource_uid
+        @offset = offset
+        yield
+      ensure
+        @resource_namespace = nil
+        @resource_uid = nil
+        @offset = nil
+      end
+
+      # If a resource namespace is active (within with_resource block), find the resource using the namespace and uid.
+      # Otherwise, return the form object.
+      def current_resource
+        if @resource_namespace
+          send(@resource_namespace)[@resource_uid]
+        else
+          super
+        end
+      end
+
+      # If a resource namespace is active (within with_resource block), append the error to the resource.
+      # Otherwise, append the error to the form object.
+      def append_maybe_resource_error(attribute_name, message)
+        if @resource_namespace
+          append_resource_error(@resource_namespace, @resource_uid + @offset, attribute_name, message)
+        else
+          super
+        end
+      end
+
       # Return a deeply nested Hash which allows you to identify errors by resource.
       #
       # @return [Hash<Symbol>]
@@ -56,7 +106,7 @@ module Gourami
 
       # TODO: YARD
       def resource_has_errors?(resource_namespace, resource_uid)
-        resource_errors[resource_namespace, resource_uid.to_s].values.map(&:flatten).any?
+        resource_errors[resource_namespace][resource_uid.to_s].values.map(&:flatten).any?
       end
 
       # TODO: YARD

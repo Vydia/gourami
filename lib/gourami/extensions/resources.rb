@@ -16,7 +16,16 @@ module Gourami
       #       validate_presence(:title) # validates `attributes[:social_broadcasts][<EACH>][:title]`
       #     end
       #   end
-      def with_each_resource(resource_namespace, offset: 0, &_block)
+      def with_each_resource(resource_namespace, offset: nil, &_block)
+        resources = send(resource_namespace)
+        if resources.is_a?(Hash)
+          return resources.each_with_index do |(resource_uid, resource), index|
+            with_resource(resource_namespace, resource_uid, offset: offset) do
+              yield(resource, resource_uid, index)
+            end
+          end
+        end
+
         send(resource_namespace).each_with_index do |resource, resource_uid|
           with_resource(resource_namespace, resource_uid, offset: offset) do
             yield(resource, resource_uid)
@@ -44,7 +53,7 @@ module Gourami
       #       validate_presence(:trim_end_time)   # validates `attributes[:social_broadcasts]["facebook_page-41"][:trim_end_time]`
       #     end
       #   end
-      def with_resource(resource_namespace, resource_uid, offset: 0, &_block)
+      def with_resource(resource_namespace, resource_uid, offset: nil, &_block)
         @resource_namespace = resource_namespace
         @resource_uid = resource_uid
         @offset = offset
@@ -69,7 +78,7 @@ module Gourami
       # Otherwise, append the error to the form object.
       def append_error(attribute_name, message)
         if @resource_namespace
-          append_resource_error(@resource_namespace, @resource_uid + @offset, attribute_name, message)
+          append_resource_error(@resource_namespace, @offset ? @resource_uid + @offset : @resource_uid, attribute_name, message)
         else
           super
         end

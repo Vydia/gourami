@@ -85,8 +85,37 @@ module Gourami
     # @param attribute_name [Symbol, nil] nil for base
     # @param error [Symbol, String]
     #   The error identifier.
-    def append_error(attribute_name, error)
+    def append_root_error(attribute_name, error)
       errors[attribute_name] << error
+    end
+
+    # NOTE: The following resource methods are to support the validate_* methods
+    # to cooperate with resource when using Extensions::Resources.
+
+    # Overridden and super invoked from Extensions::Resources
+    def current_resource
+      self
+    end
+
+    # Overridden and super invoked from Extensions::Resources
+    def append_error(attribute_name, message)
+      append_root_error(attribute_name, message)
+    end
+
+    def get_current_resource_attribute_value(attribute_name)
+      resource = current_resource
+      # If resource responds to the attribute, return the value. Otherwise, check if it's a hash and return the value for the attribute.
+      if resource.respond_to?(attribute_name)
+        resource.send(attribute_name)
+      elsif resource.respond_to?(:[])
+        if resource.key?(attribute_name.to_sym)
+          resource[attribute_name.to_sym]
+        elsif resource.key?(attribute_name.to_s)
+          resource[attribute_name.to_s]
+        end
+      else
+        nil
+      end
     end
 
     # Validate the presence of the attribute value. If the value is nil or
@@ -94,7 +123,7 @@ module Gourami
     #
     # @param attribute_name [Symbol]
     def validate_presence(attribute_name, message = nil)
-      value = send(attribute_name)
+      value = get_current_resource_attribute_value(attribute_name)
       if !value || value.to_s.strip.empty?
         append_error(attribute_name, message || :cant_be_empty)
       end
@@ -109,7 +138,7 @@ module Gourami
     #   A block to determine if a given value is unique or not. It receives
     #   the value and returns true if the value is unique.
     def validate_uniqueness(attribute_name, message = nil, &block)
-      value = send(attribute_name)
+      value = get_current_resource_attribute_value(attribute_name)
       unless block.call(value)
         append_error(attribute_name, message || :is_duplicated)
       end
@@ -137,7 +166,7 @@ module Gourami
     # @param attribute_name [Symbol]
     # @param format [Regexp]
     def validate_format(attribute_name, format, message = nil)
-      value = send(attribute_name)
+      value = get_current_resource_attribute_value(attribute_name)
       if value && !(format =~ value)
         append_error(attribute_name, message || :is_invalid)
       end
@@ -157,7 +186,7 @@ module Gourami
 
       min = options.fetch(:min, nil)
       max = options.fetch(:max, nil)
-      value = send(attribute_name)
+      value = get_current_resource_attribute_value(attribute_name)
 
       return if options[:allow_blank] && value.blank?
 
@@ -185,7 +214,7 @@ module Gourami
     # @param attribute_name [Symbol]
     # @param list [Array]
     def validate_inclusion(attribute_name, list, message = nil)
-      value = send(attribute_name)
+      value = get_current_resource_attribute_value(attribute_name)
       if value && !list.include?(value)
         append_error(attribute_name, message || :isnt_listed)
       end
@@ -194,7 +223,7 @@ module Gourami
     # Validate the presence of each object in attribute name within list. If the object
     #   is not included in the list, append the :not_listed error to the attribute.
     def validate_inclusion_of_each(attribute_name, list, message = nil)
-      value = send(attribute_name)
+      value = get_current_resource_attribute_value(attribute_name)
       value && value.each do |obj|
         unless list.include?(obj)
           append_error(attribute_name, message || "#{obj} isn't listed")
@@ -208,7 +237,7 @@ module Gourami
     #
     # @param attribute_name [Symbol]
     def validate_any(attribute_name, message = nil)
-      value = send(attribute_name)
+      value = get_current_resource_attribute_value(attribute_name)
       if value && value.empty?
         append_error(attribute_name, message || :cant_be_empty)
       end
@@ -220,7 +249,7 @@ module Gourami
     # @param attribute_name [Symbol]
     # @param filetypes [Array<String>]
     def validate_filetype(attribute_name, filetypes, message = nil)
-      value = send(attribute_name)
+      value = get_current_resource_attribute_value(attribute_name)
       if value && !filetypes.include?(value[:type].to_s.split("/").first)
         append_error(attribute_name, message || :is_invalid)
       end
@@ -237,7 +266,7 @@ module Gourami
     # @option options [Integer] :max (nil)
     #   The maximum value the attribute can take, if nil, no validation is made.
     def validate_range(attribute_name, options = {})
-      value = send(attribute_name)
+      value = get_current_resource_attribute_value(attribute_name)
 
       return unless value
 
@@ -245,6 +274,36 @@ module Gourami
       max = options.fetch(:max, nil)
       append_error(attribute_name, options.fetch(:min_message, nil) || :less_than_min) if min && value < min
       append_error(attribute_name, options.fetch(:max_message, nil) || :greater_than_max) if max && value > max
+    end
+
+    # Ensure the provided numeric attribute has the correct number of decimal places within the given range.
+    #
+    # @param attribute_name [Symbol]
+    # @option options [Integer] :max (nil)
+    #   The maximum number of decimal places the attribute can have.
+    # @option options [Integer] :min (0)
+    #   The minimum number of decimal places the attribute can have.
+    # @option options [String] :max_message (nil)
+    #   The error message to append if the attribute has too many decimal places.
+    # @option options [String] :min_message (nil)
+    #   The error message to append if the attribute has too few decimal places.
+    #
+    # @example
+    #   validate_decimal_places(:price, max: 2)
+    #   validate_decimal_places(:price, min: 2, min_message: "Price must have at least 2 decimal places.")
+    def validate_decimal_places(attribute_name, max:, min: 0, max_message: nil, min_message: nil)
+      value = get_current_resource_attribute_value(attribute_name)&.to_s
+      return unless value
+
+      decimal_places = value.split(".", 2).last&.length || 0
+
+      if max && max > 0 && decimal_places > max
+        append_error(attribute_name, max_message || :too_many_decimal_places)
+      end
+
+      if min && min > 0 && decimal_places < min
+        append_error(attribute_name, min_message || :too_few_decimal_places)
+      end
     end
 
   end

@@ -16,12 +16,31 @@ module Gourami
       #       validate_presence(:title) # validates `attributes[:social_broadcasts][<EACH>][:title]`
       #     end
       #   end
+      #
+      # @example
+      #   def validate
+      #     with_each_resource(:items, offset: existing_items.count) do |item, key, index|
+      #       # Standard validation methods are available, and will validate the attributes on the resource:
+      #       validate_decimal_places(:price, max: 2)
+      #
+      #       # You may reference the resource object directly to perform custom validation logic inline:
+      #       append_error(:password_confirmation, :doesnt_match) if item["password"] != item["password_confirmation"]
+      #
+      #       # If `items` is a Hash, `key` is the hash key of the resource.
+      #       # If `items` is an Array, `key` is the index of the resource (`+ offset`, if an offset is given).
+      #       validate_length(:name, max: 255) if key % 2 == 0
+      #
+      #       # If `items` is a Hash, `index` is the hash key of the resource.
+      #       # If `items` is an Array, `index` is the index of the resource (offset is NOT applied to index).
+      #       append_error(:id, :is_invalid) if index > 500
+      #     end
+      #   end
       def with_each_resource(resource_namespace, offset: nil, &_block)
         resources = send(resource_namespace)
         if resources.is_a?(Hash)
-          return resources.each_with_index do |(resource_uid, resource), index|
-            with_resource(resource_namespace, resource_uid, offset: offset) do
-              yield(resource, resource_uid, index)
+          return resources.each_with_index do |(key, resource), index|
+            with_resource(resource_namespace, key, offset: offset) do
+              yield(resource, key, index)
             end
           end
         end

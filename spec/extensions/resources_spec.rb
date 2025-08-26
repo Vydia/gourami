@@ -135,7 +135,7 @@ describe Gourami::Extensions::Resources do
       assert_equal(true, form.resource_attribute_has_errors?(:items, offset + 2, :id))
 
       # Checking resource_attribute_has_errors? applies a default empty array to the errors hash.
-      # TODO: Should we try to update the library to avoid that that?
+      # TODO: Should we try to update the library to avoid that?
       assert_equal({
         items: {
           (offset + 2).to_s => {
@@ -238,7 +238,7 @@ describe Gourami::Extensions::Resources do
       assert_equal(true, form.resource_attribute_has_errors?(:items, offset + 2, :id))
 
       # Checking resource_attribute_has_errors? applies a default empty array to the errors hash.
-      # TODO: Should we try to update the library to avoid that that?
+      # TODO: Should we try to update the library to avoid that?
       assert_equal({
         items: {
           (offset + 2).to_s => {
@@ -299,7 +299,7 @@ describe Gourami::Extensions::Resources do
       assert_equal(true, form.resource_attribute_has_errors?(:items_hash, "ghi", :id))
 
       # Checking resource_attribute_has_errors? applies a default empty array to the errors hash.
-      # TODO: Should we try to update the library to avoid that that?
+      # TODO: Should we try to update the library to avoid that?
       assert_equal({
         items_hash: {
           "ghi" => {
@@ -400,7 +400,7 @@ describe Gourami::Extensions::Resources do
       assert_equal(true, form.resource_attribute_has_errors?(:items_hash, "ghi", :id))
 
       # Checking resource_attribute_has_errors? applies a default empty array to the errors hash.
-      # TODO: Should we try to update the library to avoid that that?
+      # TODO: Should we try to update the library to avoid that?
       assert_equal({
         items_hash: {
           "ghi" => {

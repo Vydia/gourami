@@ -72,7 +72,7 @@ module Gourami
       #       validate_presence(:trim_end_time)   # validates `attributes[:social_broadcasts]["facebook_page-41"][:trim_end_time]`
       #     end
       #   end
-      def with_resource(resource_namespace, resource_uid, offset: nil, &_block)
+      def with_resource(resource_namespace, resource_uid = nil, offset: nil, &_block)
         @resource_namespace = resource_namespace
         @resource_uid = resource_uid
         @offset = offset
@@ -86,8 +86,10 @@ module Gourami
       # If a resource namespace is active (within with_resource block), find the resource using the namespace and uid.
       # Otherwise, return the form object.
       def current_resource
-        if @resource_namespace
+        if @resource_namespace && @resource_uid
           send(@resource_namespace)[@resource_uid]
+        elsif @resource_namespace
+          send(@resource_namespace)
         else
           super
         end
@@ -156,13 +158,21 @@ module Gourami
       end
 
       # TODO: YARD
-      def resource_has_errors?(resource_namespace, resource_uid)
-        resource_errors[resource_namespace][resource_uid.to_s].values.map(&:flatten).any?
+      def resource_has_errors?(resource_namespace, resource_uid = nil)
+        resource_errors[resource_namespace][resource_uid&.to_s].values.map(&:flatten).any?
       end
 
       # TODO: YARD
-      def resource_attribute_has_errors?(resource_namespace, resource_uid, attribute_name)
-        resource_errors[resource_namespace][resource_uid.to_s][attribute_name].any?
+      def resource_attribute_has_errors?(resource_namespace, resource_uid_or_attribute_name, attribute_name = nil)
+        if attribute_name.nil?
+          # 2 arguments: resource_namespace, attribute_name
+          attribute_name = resource_uid_or_attribute_name
+          resource_uid = nil
+        else
+          # 3 arguments: resource_namespace, resource_uid, attribute_name
+          resource_uid = resource_uid_or_attribute_name
+        end
+        resource_errors[resource_namespace][resource_uid&.to_s][attribute_name].any?
       end
 
       # Append an error to the given attribute for a resource.
@@ -174,7 +184,7 @@ module Gourami
       # @param error [Symbol, String]
       #   The error identifier.
       def append_resource_error(resource_namespace, resource_uid, attribute_name, error)
-        resource_errors[resource_namespace][resource_uid.to_s][attribute_name] << error
+        resource_errors[resource_namespace][resource_uid&.to_s][attribute_name] << error
       end
 
       # Determine if current form instance is valid by running the validations

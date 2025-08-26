@@ -56,6 +56,12 @@ describe Gourami::Extensions::Resources do
         end,
         },
       )
+      form.attribute(
+        :item,
+        description: "One object that is a Hash (not a list)",
+        type: :hash,
+        key_type: :string,
+      )
     end
   end
 
@@ -107,6 +113,15 @@ describe Gourami::Extensions::Resources do
         end
       end
 
+      assert_equal({
+        items: {
+          (offset + 2).to_s => {
+            name: [:cant_be_empty],
+            id: [:is_invalid],
+          },
+        },
+      }, form.resource_errors)
+
       assert_equal(false, form.resource_has_errors?(:items, offset + 0))
       assert_equal(false, form.resource_has_errors?(:items, offset + 1))
       assert_equal(true, form.resource_has_errors?(:items, offset + 2))
@@ -118,6 +133,19 @@ describe Gourami::Extensions::Resources do
       assert_equal(false, form.resource_attribute_has_errors?(:items, offset + 1, :id))
       assert_equal(true, form.resource_attribute_has_errors?(:items, offset + 2, :name))
       assert_equal(true, form.resource_attribute_has_errors?(:items, offset + 2, :id))
+
+      # Checking resource_attribute_has_errors? applies a default empty array to the errors hash.
+      # TODO: Should we try to update the library to avoid that that?
+      assert_equal({
+        items: {
+          (offset + 2).to_s => {
+            name: [:cant_be_empty],
+            id: [:is_invalid],
+          },
+          (offset + 0).to_s => { name: [], id: [] },
+          (offset + 1).to_s => { name: [], id: [] }
+        },
+      }, form.resource_errors)
     end
   end
 
@@ -188,6 +216,15 @@ describe Gourami::Extensions::Resources do
         received_indexes
       )
 
+      assert_equal({
+        items: {
+          (offset + 2).to_s => {
+            name: [:cant_be_empty],
+            id: [:is_invalid],
+          },
+        },
+      }, form.resource_errors)
+
       assert_equal(false, form.resource_has_errors?(:items, offset + 0))
       assert_equal(false, form.resource_has_errors?(:items, offset + 1))
       assert_equal(true, form.resource_has_errors?(:items, offset + 2))
@@ -199,6 +236,19 @@ describe Gourami::Extensions::Resources do
       assert_equal(false, form.resource_attribute_has_errors?(:items, offset + 1, :id))
       assert_equal(true, form.resource_attribute_has_errors?(:items, offset + 2, :name))
       assert_equal(true, form.resource_attribute_has_errors?(:items, offset + 2, :id))
+
+      # Checking resource_attribute_has_errors? applies a default empty array to the errors hash.
+      # TODO: Should we try to update the library to avoid that that?
+      assert_equal({
+        items: {
+          (offset + 2).to_s => {
+            name: [:cant_be_empty],
+            id: [:is_invalid],
+          },
+          (offset + 0).to_s => { name: [], id: [] },
+          (offset + 1).to_s => { name: [], id: [] }
+        },
+      }, form.resource_errors)
     end
   end
 
@@ -227,6 +277,15 @@ describe Gourami::Extensions::Resources do
         end
       end
 
+      assert_equal({
+        items_hash: {
+          "ghi" => {
+            name: [:cant_be_empty],
+            id: [:is_invalid],
+          },
+        },
+      }, form.resource_errors)
+
       assert_equal(false, form.resource_has_errors?(:items_hash, "abc"))
       assert_equal(false, form.resource_has_errors?(:items_hash, "def"))
       assert_equal(true, form.resource_has_errors?(:items_hash, "ghi"))
@@ -238,6 +297,18 @@ describe Gourami::Extensions::Resources do
       assert_equal(false, form.resource_attribute_has_errors?(:items_hash, "def", :id))
       assert_equal(true, form.resource_attribute_has_errors?(:items_hash, "ghi", :name))
       assert_equal(true, form.resource_attribute_has_errors?(:items_hash, "ghi", :id))
+
+      # Checking resource_attribute_has_errors? applies a default empty array to the errors hash.
+      # TODO: Should we try to update the library to avoid that that?
+      assert_equal({
+        items_hash: {
+          "ghi" => {
+            name: [:cant_be_empty],
+            id: [:is_invalid],
+          },
+          "abc" => { name: [], id: [] }, "def" => { name: [], id: [] }
+        },
+      }, form.resource_errors)
     end
   end
 
@@ -307,6 +378,15 @@ describe Gourami::Extensions::Resources do
         received_indexes
       )
 
+      assert_equal({
+        items_hash: {
+          "ghi" => {
+            name: [:cant_be_empty],
+            id: [:is_invalid],
+          },
+        },
+      }, form.resource_errors)
+
       assert_equal(false, form.resource_has_errors?(:items_hash, "abc"))
       assert_equal(false, form.resource_has_errors?(:items_hash, "def"))
       assert_equal(true, form.resource_has_errors?(:items_hash, "ghi"))
@@ -318,6 +398,43 @@ describe Gourami::Extensions::Resources do
       assert_equal(false, form.resource_attribute_has_errors?(:items_hash, "def", :id))
       assert_equal(true, form.resource_attribute_has_errors?(:items_hash, "ghi", :name))
       assert_equal(true, form.resource_attribute_has_errors?(:items_hash, "ghi", :id))
+
+      # Checking resource_attribute_has_errors? applies a default empty array to the errors hash.
+      # TODO: Should we try to update the library to avoid that that?
+      assert_equal({
+        items_hash: {
+          "ghi" => {
+            name: [:cant_be_empty],
+            id: [:is_invalid],
+          },
+          "abc" => { name: [], id: [] }, "def" => { name: [], id: [] }
+        },
+      }, form.resource_errors)
+    end
+  end
+
+  describe "#with_resource(:item) # Hash/Input Object" do
+    it "validations within the block are scoped to the resource" do
+      form = form_class.new(
+        item: {
+          name: "",
+          id: 789,
+        },
+      )
+
+      assert_equal(false, form.resource_has_errors?(:item))
+      assert_equal(false, form.resource_attribute_has_errors?(:item, :name))
+      assert_equal(false, form.resource_attribute_has_errors?(:item, :id))
+
+      form.with_resource(:item) do
+        form.validate_presence(:name)
+        form.append_error(:id, :is_invalid) if form.item["id"] > 500
+      end
+
+      assert_equal(true, form.resource_has_errors?(:item))
+      assert_equal(true, form.resource_attribute_has_errors?(:item, :name))
+      assert_equal(true, form.resource_attribute_has_errors?(:item, :id))
+      assert_equal({ item: { nil => { name: [:cant_be_empty], id: [:is_invalid] } } }, form.resource_errors)
     end
   end
 end

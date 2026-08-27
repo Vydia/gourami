@@ -15,6 +15,12 @@ describe "Gourami::Plugins::Sanitize" do
     assert_equal("<p>foo</p>", form.bio)
   end
 
+  it "strips whitespace around the content" do
+    form = form_class.new(:bio => "<b>a</b> <script>x</script> ")
+
+    assert_equal("<b>a</b>", form.bio)
+  end
+
   it "removes unescaped characters and removes dangerous html tags" do
     form = form_class.new(:bio => "&lt;p&gt;Hello &amp; welcome!&lt;img src=a onerror=alert(1)&gt;&lt;/p&gt;")
 

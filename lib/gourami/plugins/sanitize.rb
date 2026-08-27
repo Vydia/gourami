@@ -29,7 +29,7 @@ module Gourami
           unescaped_content = CGI.unescapeHTML(value)
           sanitized_content = Loofah.html4_fragment(unescaped_content).scrub!(:prune).to_s
           # Unescape again since loofah would turn a & back into &amp;
-          CGI.unescapeHTML(sanitized_content)
+          CGI.unescapeHTML(sanitized_content).strip
         end
       end
     end

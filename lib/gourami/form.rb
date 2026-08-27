@@ -88,5 +88,34 @@ module Gourami
     include Gourami::Validations
     include Gourami::Coercer
 
+    # Load and apply a plugin.
+    #
+    # @param name [Symbol, Module] a name to look up under Gourami::Plugins
+    #   (e.g. :sanitize loads gourami/plugins/sanitize and resolves
+    #   Gourami::Plugins::Sanitize), or a Module to apply directly.
+    def self.plugin(name, *args, &block)
+      plugin_module = load_plugin(name)
+
+      plugin_module.apply(self, *args, &block) if plugin_module.respond_to?(:apply)
+
+      extend(plugin_module::ClassMethods) if plugin_module.const_defined?(:ClassMethods)
+      include(plugin_module::InstanceMethods) if plugin_module.const_defined?(:InstanceMethods)
+
+      plugin_module.configure(self, *args, &block) if plugin_module.respond_to?(:configure)
+    end
+
+    def self.load_plugin(name)
+      return name if name.is_a?(Module)
+
+      const_name = name.to_s.split("_").map { |part| part[0].upcase + part[1..-1] }.join
+
+      unless Gourami::Plugins.const_defined?(const_name)
+        require "gourami/plugins/#{name}"
+      end
+
+      Gourami::Plugins.const_get(const_name)
+    end
+    private_class_method :load_plugin
+
   end
 end

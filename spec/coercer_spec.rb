@@ -42,22 +42,6 @@ describe Gourami::Coercer do
           assert_equal(input, coercer.coerce_string(input, :strip => false))
         end
       end
-
-      describe "sanitize" do
-        let(:input) { "<script>alert('xss')</script><p>foo</p>" }
-
-        it "does not sanitize by default" do
-          assert_equal(input, coercer.coerce_string(input))
-        end
-
-        it "sanitizes when option is true" do
-          assert_equal("<p>foo</p>", coercer.coerce_string(input, :sanitize => true))
-        end
-
-        it "does not sanitize when option is false" do
-          assert_equal(input, coercer.coerce_string(input, :sanitize => false))
-        end
-      end
     end
   end
 

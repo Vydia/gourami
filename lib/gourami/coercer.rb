@@ -1,5 +1,3 @@
-require "loofah"
-
 module Gourami
   module Coercer
 
@@ -40,7 +38,6 @@ module Gourami
       # set_default_attribute_options at the gem level or consumer level.
       value.strip! if options.fetch(:strip, true)
       value.upcase! if options.fetch(:upcase, false)
-      value = Loofah.html4_fragment(value).scrub!(:prune).to_s if options.fetch(:sanitize, false)
 
       value
     end

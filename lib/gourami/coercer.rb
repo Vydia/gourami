@@ -11,7 +11,12 @@ module Gourami
     # @return [*]
     def setter_filter(attribute_name, value, options)
       type = options[:type]
-      value = send(:"coerce_#{type}", value, options) if type
+
+      if type
+        raise "coerce_#{type} does not exist. Did you forget to add a plugin for coerce_#{type}?" unless respond_to?(:"coerce_#{type}")
+
+        value = send(:"coerce_#{type}", value, options)
+      end
 
       super(attribute_name, value, options)
     end

@@ -89,7 +89,8 @@ module Gourami
     include Gourami::Coercer
 
     # Load and apply a plugin.
-    #
+    # Inspired by the plugin system from the Sequel gem. https://janko.io/the-plugin-system-of-sequel-and-roda/
+    # 
     # @param name [Symbol, Module] a name to look up under Gourami::Plugins
     #   (e.g. :sanitize loads gourami/plugins/sanitize and resolves
     #   Gourami::Plugins::Sanitize), or a Module to apply directly.

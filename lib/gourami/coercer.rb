@@ -13,7 +13,7 @@ module Gourami
       type = options[:type]
 
       if type
-        raise "coerce_#{type} does not exist. Did you forget to add a plugin for coerce_#{type}?" unless respond_to?(:"coerce_#{type}")
+        raise ":coerce_#{type} does not exist. Did you forget to add a plugin for :coerce_#{type}?" unless respond_to?(:"coerce_#{type}")
 
         value = send(:"coerce_#{type}", value, options)
       end

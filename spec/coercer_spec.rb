@@ -3,6 +3,22 @@ require_relative "./spec_helper"
 describe Gourami::Coercer do
   let(:coercer) { Class.new.extend(Gourami::Coercer) }
 
+  describe "#setter_filter" do
+    let(:coercer) { Class.new { include Gourami::Attributes; include Gourami::Coercer }.new }
+
+    it "does not raise when :type is not provided" do
+      assert_equal("foo", coercer.setter_filter(:name, "foo", {}))
+    end
+
+    it "raises a helpful error when :type has no matching coerce_* method" do
+      error = assert_raises(RuntimeError) do
+        coercer.setter_filter(:name, "foo", :type => :whatever)
+      end
+
+      assert_equal(":coerce_whatever does not exist. Did you forget to add a plugin for :coerce_whatever?", error.message)
+    end
+  end
+
   describe "#coerce_string" do
     describe "options" do
       describe ":allow_nil" do

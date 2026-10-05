@@ -9,6 +9,14 @@ describe "Gourami::Plugins::Sanitize" do
     end
   end
 
+  let(:strict_form_class) do
+    Class.new(Gourami::Form) do
+      plugin :sanitize
+
+      attribute :bio, :type => :sanitized_string, :sanitize => :strict
+    end
+  end
+
   it "removes dangerous html tags" do
     form = form_class.new(:bio => "<script>alert('xss')</script><p>foo</p>")
 
@@ -40,4 +48,19 @@ describe "Gourami::Plugins::Sanitize" do
 
     assert_equal("", form.bio)
   end
+
+  describe "when strict mode" do
+    it "removes all tags, including images" do
+      form = strict_form_class.new(:bio => '<p>Hello <img src="a" onerror=alert("hacked")>world</p>')
+  
+      assert_equal("Hello world", form.bio)
+    end
+  
+    it "removes entity-encoded tags" do
+      form = strict_form_class.new(:bio => "&lt;p&gt;Hello&lt;img src=x&gt;&lt;/p&gt;")
+  
+      assert_equal("Hello", form.bio)
+    end
+  end
+
 end

@@ -28,10 +28,10 @@ module Gourami
           # recognized as real HTML by Loofah instead of passing through as text.
           unescaped_content = CGI.unescapeHTML(value)
           sanitized_content = Loofah.html4_fragment(unescaped_content).scrub!(:prune).to_s
-          
-          # Prune dangerous elements and their contents, then strip all remaining tags.
-          sanitized_content = sanitized_content.scrub!(:strip).to_s.strip if options[:sanitize] == :strict
-          
+
+          # In strict mode only allow text, no tags.
+          sanitized_content = Loofah.html4_fragment(unescaped_content).text if options[:sanitize] == :strict
+
           # Unescape again since loofah would turn a & back into &amp;
           CGI.unescapeHTML(sanitized_content).strip
         end

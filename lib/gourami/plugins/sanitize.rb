@@ -27,10 +27,12 @@ module Gourami
           # Unescape first so entity-encoded tags (e.g. "&lt;script&gt;") are
           # recognized as real HTML by Loofah instead of passing through as text.
           unescaped_content = CGI.unescapeHTML(value)
-          sanitized_content = Loofah.html4_fragment(unescaped_content).scrub!(:prune).to_s
-
-          # In strict mode only allow text, no tags.
-          sanitized_content = Loofah.html4_fragment(unescaped_content).text if options[:sanitize] == :strict
+          
+          sanitized_content = if options[:sanitize] == :strict
+            Loofah.html4_fragment(unescaped_content).text
+          else
+            Loofah.html4_fragment(unescaped_content).scrub!(:prune).to_s
+          end
 
           # Unescape again since loofah would turn a & back into &amp;
           CGI.unescapeHTML(sanitized_content).strip
